@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, trunk]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kmp-android:
+    name: KMP — Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - run: chmod +x gradlew
+
+      - name: Compile Android debug
+        run: ./gradlew :composeApp:assembleDebug --stacktrace
+
+  kmp-desktop:
+    name: KMP — Desktop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: chmod +x gradlew
+
+      - name: Compile Desktop (JVM)
+        run: ./gradlew :composeApp:compileKotlinDesktop --stacktrace
+
+  kmp-web:
+    name: KMP — Web (Wasm)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: chmod +x gradlew
+
+      - name: Compile Web (wasmJs)
+        run: ./gradlew :composeApp:compileKotlinWasmJs --stacktrace
+
+  kmp-ios:
+    name: KMP — iOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: chmod +x gradlew
+
+      - name: Compile iOS (Simulator ARM64)
+        run: ./gradlew :composeApp:compileKotlinIosSimulatorArm64 --stacktrace

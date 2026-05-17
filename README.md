@@ -15,8 +15,6 @@ Masterdoc App помогает разобраться с повседневны�
 
 ## Платформы и стек
 
-Приложение планируется как **мультиплатформенное** на **[Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html)** с общей бизнес-логикой и UI-слоем:
-
 | Платформа | Целевые системы |
 |-----------|-----------------|
 | Android | Смартфоны и планшеты |
@@ -24,16 +22,30 @@ Masterdoc App помогает разобраться с повседневны�
 | Desktop | Windows, macOS, Linux |
 | Web | Браузер |
 
-## Статус
+**Kotlin Multiplatform** + **Compose Multiplatform**, **Decompose**, **MVIKotlin**, **Koin**, **Ktor** (REST).
 
-Репозиторий в начальной стадии: описание продукта и структура проекта формируются. Код приложения появится в следующих коммитах.
+Структура: `shared/` (логика), `composeApp/` (UI), `iosApp/` (оболочка Xcode).
+
+## Сборка и запуск
+
+```bash
+./gradlew :composeApp:assembleDebug          # Android APK
+./gradlew :composeApp:run                    # Desktop
+./gradlew :composeApp:wasmJsBrowserDevelopmentRun  # Web (dev server)
+```
+
+iOS: см. [iosApp/README.md](iosApp/README.md).
+
+## CI
+
+На каждый push и PR — сборка всех платформ (см. [AGENTS.md](AGENTS.md)).
 
 ## Связанные репозитории
 
 | Репозиторий | Назначение |
 |-------------|------------|
-| [masterdoc](https://github.com/masterdoc-app/masterdoc) | Лендинг приложения |
-| [masterdocapp](https://github.com/masterdoc-app/masterdocapp) | Кроссплатформенное приложение (этот репозиторий) |
+| [masterdoc](https://github.com/masterdoc-app/masterdoc) | Лендинг |
+| [masterdocapp](https://github.com/masterdoc-app/masterdocapp) | Приложение (этот репозиторий) |
 
 ## Лицензия
 

@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -29,8 +29,8 @@ fun RootContent(component: RootComponent) {
                 NavigationBarItem(
                     selected = pages.selectedIndex == 0,
                     onClick = { component.onTabSelected(0) },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    label = { Text("Главная") },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null) },
+                    label = { Text("Чат") },
                 )
                 NavigationBarItem(
                     selected = pages.selectedIndex == 1,
@@ -47,7 +47,7 @@ fun RootContent(component: RootComponent) {
                 .padding(padding),
         ) {
             when (activeChild) {
-                is TabChild.Home -> HomeTabContent(activeChild.component)
+                is TabChild.Chat -> ChatTabContent(activeChild.component)
                 is TabChild.Search -> SearchTabContent(activeChild.component)
                 null -> Unit
             }

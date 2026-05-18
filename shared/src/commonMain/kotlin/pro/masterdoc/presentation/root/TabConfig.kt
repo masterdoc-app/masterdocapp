@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class TabConfig {
-    Home,
+    Chat,
     Search,
 }

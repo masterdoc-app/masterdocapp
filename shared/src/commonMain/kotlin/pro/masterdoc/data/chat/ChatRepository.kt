@@ -1,0 +1,21 @@
+package pro.masterdoc.data.chat
+
+import pro.masterdoc.domain.chat.ChatMessage
+
+data class ChatHistory(
+    val conversationId: String?,
+    val messages: List<ChatMessage>,
+)
+
+data class SendChatResult(
+    val conversationId: String,
+    val userMessage: ChatMessage,
+    val assistantMessage: ChatMessage,
+)
+
+interface ChatRepository {
+    suspend fun loadHistory(conversationId: String?): Result<ChatHistory>
+    suspend fun send(text: String, conversationId: String?): Result<SendChatResult>
+}
+
+class ChatException(val userMessage: String) : Exception(userMessage)

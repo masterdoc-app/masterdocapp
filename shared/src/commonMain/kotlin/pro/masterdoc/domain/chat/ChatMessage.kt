@@ -1,0 +1,20 @@
+package pro.masterdoc.domain.chat
+
+enum class ChatRole {
+    User,
+    Assistant,
+}
+
+enum class ChatMessageStatus {
+    Sent,
+    Sending,
+    Failed,
+}
+
+data class ChatMessage(
+    val id: String,
+    val role: ChatRole,
+    val content: String,
+    val createdAt: String? = null,
+    val status: ChatMessageStatus = ChatMessageStatus.Sent,
+)

@@ -10,7 +10,7 @@ import com.arkivanov.decompose.value.Value
 
 class DefaultRootComponent(
     componentContext: ComponentContext,
-    private val homeFactory: (ComponentContext) -> TabChild.Home,
+    private val chatFactory: (ComponentContext) -> TabChild.Chat,
     private val searchFactory: (ComponentContext) -> TabChild.Search,
 ) : RootComponent, ComponentContext by componentContext {
 
@@ -21,13 +21,13 @@ class DefaultRootComponent(
         serializer = TabConfig.serializer(),
         initialPages = {
             Pages(
-                items = listOf(TabConfig.Home, TabConfig.Search),
+                items = listOf(TabConfig.Chat, TabConfig.Search),
                 selectedIndex = 0,
             )
         },
         childFactory = { config, childContext ->
             when (config) {
-                TabConfig.Home -> homeFactory(childContext)
+                TabConfig.Chat -> chatFactory(childContext)
                 TabConfig.Search -> searchFactory(childContext)
             }
         },

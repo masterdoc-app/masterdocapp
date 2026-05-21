@@ -15,25 +15,28 @@ if (localPropertiesFile.exists()) {
 
 fun readLocalProperty(key: String): String = localProperties.getProperty(key)?.trim().orEmpty()
 
-val onyxBaseUrlFromLocal: String = readLocalProperty("onyx.baseUrl")
-val onyxPatFromLocal: String = readLocalProperty("onyx.pat")
-
-val generateOnyxBuildConfig = tasks.register("generateOnyxBuildConfig") {
+val generateMasterdocBuildConfig = tasks.register("generateMasterdocBuildConfig") {
     val generatedKotlinDir =
-        layout.buildDirectory.dir("generated/onyxBuildConfig/kotlin/pro/masterdoc/data/config")
-    outputs.dir(generatedKotlinDir)
+        layout.buildDirectory.dir("generated/masterdocBuildConfig/kotlin/pro/masterdoc/data/config")
+    val generatedFile = generatedKotlinDir.map { it.file("MasterdocBuildConfig.kt") }
+    inputs.file(localPropertiesFile).optional()
+    outputs.file(generatedFile)
     doLast {
+        val props = Properties()
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { props.load(it) }
+        }
+        val baseUrl = props.getProperty("masterdoc.api.baseUrl")?.trim().orEmpty()
         val dir = generatedKotlinDir.get().asFile
         dir.mkdirs()
         fun String.escapeForKotlin(): String = replace("\\", "\\\\").replace("\"", "\\\"")
-        dir.resolve("OnyxBuildConfig.kt").writeText(
+        dir.resolve("MasterdocBuildConfig.kt").writeText(
             """
             package pro.masterdoc.data.config
 
-            /** Generated from root [local.properties] (onyx.baseUrl, onyx.pat). Do not edit. */
-            internal object OnyxBuildConfig {
-                const val BASE_URL: String = "${onyxBaseUrlFromLocal.escapeForKotlin()}"
-                const val PAT: String = "${onyxPatFromLocal.escapeForKotlin()}"
+            /** Generated from root [local.properties] (masterdoc.api.baseUrl). Do not edit. */
+            internal object MasterdocBuildConfig {
+                val API_BASE_URL: String = "${baseUrl.escapeForKotlin()}"
             }
             """.trimIndent() + "\n",
         )
@@ -59,7 +62,7 @@ kotlin {
 
     sourceSets {
         commonMain {
-            kotlin.srcDir(layout.buildDirectory.dir("generated/onyxBuildConfig/kotlin"))
+            kotlin.srcDir(layout.buildDirectory.dir("generated/masterdocBuildConfig/kotlin"))
         }
 
         commonMain.dependencies {
@@ -106,7 +109,7 @@ kotlin {
 
 tasks.configureEach {
     if (name.startsWith("compile") && "Kotlin" in name) {
-        dependsOn(generateOnyxBuildConfig)
+        dependsOn(generateMasterdocBuildConfig)
     }
 }
 

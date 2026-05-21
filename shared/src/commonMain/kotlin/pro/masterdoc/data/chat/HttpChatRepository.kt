@@ -2,31 +2,97 @@ package pro.masterdoc.data.chat
 
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ServerResponseException
+import pro.masterdoc.domain.chat.ChatMessage
+import pro.masterdoc.domain.chat.ChatMessageStatus
+import pro.masterdoc.domain.chat.ChatRole
+import pro.masterdoc.domain.chat.TimelineStepStatus
 
 class HttpChatRepository(
     private val api: ChatApi,
 ) : ChatRepository {
     override suspend fun loadHistory(conversationId: String?): Result<ChatHistory> =
         runCatching {
-            val response = api.getMessages(conversationId)
+            if (conversationId.isNullOrBlank()) {
+                return@runCatching ChatHistory(conversationId = null, messages = emptyList())
+            }
+            val session = api.getChatSession(conversationId)
             ChatHistory(
-                conversationId = response.conversationId ?: conversationId,
-                messages = response.messages.map { it.toDomain() },
+                conversationId = session.chatSessionId,
+                messages = session.messages.mapNotNull { it.toDomain() },
             )
         }.mapError(::toUserMessage)
 
-    override suspend fun send(text: String, conversationId: String?): Result<SendChatResult> =
-        runCatching {
-            val response = api.sendMessage(content = text.trim(), conversationId = conversationId)
-            SendChatResult(
-                conversationId = response.conversationId,
-                userMessage = response.userMessage.toDomain(),
-                assistantMessage = response.assistantMessage.toDomain(),
+    override suspend fun send(
+        text: String,
+        conversationId: String?,
+        personaId: Int,
+        onStreamUpdate: (StreamingChatUpdate) -> Unit,
+    ): Result<SendChatResult> = runCatching {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) {
+            error("Пустое сообщение")
+        }
+
+        val sessionId = conversationId?.takeIf { it.isNotBlank() }
+            ?: api.createChatSession(personaId).chatSessionId
+
+        val userMessage = ChatMessage(
+            id = "user-${sessionId}-${trimmed.hashCode()}",
+            role = ChatRole.User,
+            content = trimmed,
+            status = ChatMessageStatus.Sent,
+        )
+        val assistantId = "assistant-${sessionId}-${trimmed.hashCode()}"
+        val accumulator = OnyxStreamAccumulator()
+
+        api.sendChatMessageStream(trimmed, sessionId) { line ->
+            accumulator.onLine(line)
+            val snap = accumulator.snapshot()
+            onStreamUpdate(
+                StreamingChatUpdate(
+                    conversationId = sessionId,
+                    userMessage = userMessage,
+                    assistantMessage = ChatMessage(
+                        id = assistantId,
+                        role = ChatRole.Assistant,
+                        content = snap.answer,
+                        timeline = snap.timeline,
+                        isStreaming = true,
+                    ),
+                ),
             )
-        }.mapError(::toUserMessage)
+        }
+
+        val final = accumulator.snapshot()
+        if (final.answer.isBlank()) {
+            error("Пустой ответ от Onyx")
+        }
+
+        SendChatResult(
+            conversationId = sessionId,
+            userMessage = userMessage,
+            assistantMessage = ChatMessage(
+                id = assistantId,
+                role = ChatRole.Assistant,
+                content = final.answer,
+                timeline = final.timeline.map { step ->
+                    if (step.status == TimelineStepStatus.Active) {
+                        step.copy(status = TimelineStepStatus.Done)
+                    } else {
+                        step
+                    }
+                },
+                isStreaming = false,
+            ),
+        )
+    }.mapError(::toUserMessage)
 
     private fun toUserMessage(throwable: Throwable): String = when (throwable) {
-        is ClientRequestException -> "Ошибка запроса (${throwable.response.status.value})"
+        is ClientRequestException -> when (throwable.response.status.value) {
+            401 -> "Ошибка авторизации API"
+            403 -> "Доступ запрещён"
+            else -> "Ошибка запроса (${throwable.response.status.value})"
+        }
         is ServerResponseException -> "Ошибка сервера (${throwable.response.status.value})"
         else -> if (throwable.message.orEmpty().contains("connection", ignoreCase = true)) {
             "Нет соединения с сервером"

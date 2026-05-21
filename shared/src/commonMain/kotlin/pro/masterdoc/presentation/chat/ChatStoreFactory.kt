@@ -1,12 +1,12 @@
 package pro.masterdoc.presentation.chat
 
 import com.arkivanov.mvikotlin.core.store.Reducer
-import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import kotlinx.coroutines.launch
 import pro.masterdoc.data.chat.ChatException
 import pro.masterdoc.data.chat.ChatRepository
+import pro.masterdoc.data.chat.StreamingChatUpdate
 import pro.masterdoc.domain.chat.ChatMessage
 import pro.masterdoc.domain.chat.ChatMessageStatus
 import pro.masterdoc.domain.chat.ChatRole
@@ -20,14 +20,9 @@ class ChatStoreFactory(
         com.arkivanov.mvikotlin.core.store.Store<ChatStore.Intent, ChatStore.State, ChatStore.Label> by storeFactory.create(
             name = "ChatStore",
             initialState = ChatStore.State(),
-            bootstrapper = SimpleBootstrapper(Action.LoadHistory),
             executorFactory = { ChatExecutor(repository) },
             reducer = ChatReducer,
         ) {}
-}
-
-private sealed interface Action {
-    data object LoadHistory : Action
 }
 
 private sealed interface Msg {
@@ -35,18 +30,26 @@ private sealed interface Msg {
     data class SetLoadingHistory(val loading: Boolean) : Msg
     data class SetSending(val sending: Boolean) : Msg
     data class SetError(val error: String?) : Msg
+    data class AssistantBound(val personaId: Int, val name: String) : Msg
+    data object SessionReset : Msg
     data class HistoryLoaded(
         val conversationId: String?,
         val messages: List<ChatMessage>,
     ) : Msg
     data class AppendOptimisticUser(val message: ChatMessage) : Msg
+    data class StreamUpdate(
+        val conversationId: String,
+        val tempUserId: String,
+        val streamingAssistantId: String,
+        val update: StreamingChatUpdate,
+    ) : Msg
     data class SendSucceeded(
         val conversationId: String,
         val tempUserId: String,
         val userMessage: ChatMessage,
         val assistantMessage: ChatMessage,
     ) : Msg
-    data class SendFailed(val tempUserId: String, val error: String) : Msg
+    data class SendFailed(val tempUserId: String, val streamingAssistantId: String?, val error: String) : Msg
 }
 
 private object ChatReducer : Reducer<ChatStore.State, Msg> {
@@ -55,6 +58,18 @@ private object ChatReducer : Reducer<ChatStore.State, Msg> {
         is Msg.SetLoadingHistory -> copy(isLoadingHistory = msg.loading)
         is Msg.SetSending -> copy(isSending = msg.sending)
         is Msg.SetError -> copy(error = msg.error)
+        is Msg.AssistantBound -> copy(
+            personaId = msg.personaId,
+            assistantName = msg.name,
+            conversationId = null,
+            messages = emptyList(),
+            error = null,
+        )
+        Msg.SessionReset -> copy(
+            conversationId = null,
+            messages = emptyList(),
+            error = null,
+        )
         is Msg.HistoryLoaded -> copy(
             conversationId = msg.conversationId,
             messages = msg.messages,
@@ -67,23 +82,40 @@ private object ChatReducer : Reducer<ChatStore.State, Msg> {
             isSending = true,
             error = null,
         )
+        is Msg.StreamUpdate -> copy(
+            conversationId = msg.conversationId,
+            messages = messages
+                .filterNot { it.id == msg.streamingAssistantId || it.id == msg.tempUserId }
+                .plus(
+                    msg.update.userMessage.copy(
+                        id = msg.tempUserId,
+                        status = ChatMessageStatus.Sending,
+                    ),
+                )
+                .plus(msg.update.assistantMessage.copy(id = msg.streamingAssistantId)),
+            isSending = true,
+            error = null,
+        )
         is Msg.SendSucceeded -> copy(
             conversationId = msg.conversationId,
             messages = messages
                 .filterNot { it.id == msg.tempUserId }
+                .filterNot { it.id.startsWith("streaming-") }
                 .plus(msg.userMessage)
                 .plus(msg.assistantMessage),
             isSending = false,
             error = null,
         )
         is Msg.SendFailed -> copy(
-            messages = messages.map { message ->
-                if (message.id == msg.tempUserId) {
-                    message.copy(status = ChatMessageStatus.Failed)
-                } else {
-                    message
-                }
-            },
+            messages = messages
+                .filterNot { it.id.startsWith("streaming-") }
+                .map { message ->
+                    if (message.id == msg.tempUserId) {
+                        message.copy(status = ChatMessageStatus.Failed)
+                    } else {
+                        message
+                    }
+                },
             isSending = false,
             error = msg.error,
         )
@@ -92,13 +124,7 @@ private object ChatReducer : Reducer<ChatStore.State, Msg> {
 
 private class ChatExecutor(
     private val repository: ChatRepository,
-) : CoroutineExecutor<ChatStore.Intent, Action, ChatStore.State, Msg, ChatStore.Label>() {
-
-    override fun executeAction(action: Action) {
-        when (action) {
-            Action.LoadHistory -> loadHistory()
-        }
-    }
+) : CoroutineExecutor<ChatStore.Intent, Nothing, ChatStore.State, Msg, ChatStore.Label>() {
 
     override fun executeIntent(intent: ChatStore.Intent) {
         when (intent) {
@@ -107,10 +133,16 @@ private class ChatExecutor(
             ChatStore.Intent.RetryLoad,
             ChatStore.Intent.Refresh,
             -> loadHistory()
+            is ChatStore.Intent.BindAssistant -> {
+                dispatch(Msg.AssistantBound(intent.id, intent.name))
+                loadHistory()
+            }
+            ChatStore.Intent.ResetSession -> dispatch(Msg.SessionReset)
         }
     }
 
     private fun loadHistory() {
+        if (state().personaId == null) return
         val conversationId = state().conversationId
         dispatch(Msg.SetLoadingHistory(true))
         dispatch(Msg.SetError(null))
@@ -133,10 +165,12 @@ private class ChatExecutor(
 
     private fun sendMessage() {
         val current = state()
+        val personaId = current.personaId ?: return
         val text = current.input.trim()
         if (text.isEmpty() || current.isSending) return
 
         val tempId = "local-${Random.nextLong()}"
+        val streamingAssistantId = "streaming-$tempId"
         val optimistic = ChatMessage(
             id = tempId,
             role = ChatRole.User,
@@ -146,7 +180,23 @@ private class ChatExecutor(
         dispatch(Msg.AppendOptimisticUser(optimistic))
 
         scope.launch {
-            repository.send(text, current.conversationId)
+            repository.send(
+                text = text,
+                conversationId = current.conversationId,
+                personaId = personaId,
+                onStreamUpdate = { update ->
+                    dispatch(
+                        Msg.StreamUpdate(
+                            conversationId = update.conversationId,
+                            tempUserId = tempId,
+                            streamingAssistantId = streamingAssistantId,
+                            update = update.copy(
+                                assistantMessage = update.assistantMessage.copy(id = streamingAssistantId),
+                            ),
+                        ),
+                    )
+                },
+            )
                 .onSuccess { result ->
                     dispatch(
                         Msg.SendSucceeded(
@@ -156,10 +206,15 @@ private class ChatExecutor(
                             assistantMessage = result.assistantMessage,
                         ),
                     )
-                    publish(ChatStore.Label.ScrollToBottom())
                 }
                 .onFailure { error ->
-                    dispatch(Msg.SendFailed(tempUserId = tempId, error = error.toUserMessage()))
+                    dispatch(
+                        Msg.SendFailed(
+                            tempUserId = tempId,
+                            streamingAssistantId = streamingAssistantId,
+                            error = error.toUserMessage(),
+                        ),
+                    )
                 }
         }
     }

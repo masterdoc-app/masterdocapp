@@ -3,6 +3,9 @@ package pro.masterdoc.data.chat
 import kotlinx.coroutines.delay
 import pro.masterdoc.domain.chat.ChatMessage
 import pro.masterdoc.domain.chat.ChatRole
+import pro.masterdoc.domain.chat.ChatTimelineStep
+import pro.masterdoc.domain.chat.TimelineStepKind
+import pro.masterdoc.domain.chat.TimelineStepStatus
 import kotlin.random.Random
 
 /**
@@ -37,8 +40,12 @@ class MockChatRepository : ChatRepository {
         )
     }
 
-    override suspend fun send(text: String, conversationId: String?): Result<SendChatResult> {
-        delay(MOCK_NETWORK_DELAY_MS)
+    override suspend fun send(
+        text: String,
+        conversationId: String?,
+        personaId: Int,
+        onStreamUpdate: (StreamingChatUpdate) -> Unit,
+    ): Result<SendChatResult> {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) {
             return Result.failure(ChatException("Пустое сообщение"))
@@ -50,9 +57,86 @@ class MockChatRepository : ChatRepository {
             role = ChatRole.User,
             content = trimmed,
         )
-        val assistantMessage = assistantMessage(
-            id = "mock-assistant-${Random.nextLong()}",
-            content = replyFor(trimmed),
+        val assistantId = "mock-assistant-${Random.nextLong()}"
+        val answer = replyFor(trimmed)
+
+        val thinking = ChatTimelineStep(
+            id = "thinking",
+            label = "Думаю…",
+            kind = TimelineStepKind.Thinking,
+            status = TimelineStepStatus.Active,
+            detail = "Анализирую вопрос по базе знаний Атлант…",
+        )
+        onStreamUpdate(
+            StreamingChatUpdate(
+                conversationId = this.conversationId,
+                userMessage = userMessage,
+                assistantMessage = ChatMessage(
+                    id = assistantId,
+                    role = ChatRole.Assistant,
+                    content = "",
+                    timeline = listOf(thinking),
+                    isStreaming = true,
+                ),
+            ),
+        )
+        delay(350)
+
+        val search = ChatTimelineStep(
+            id = "search",
+            label = "Поиск в базе знаний",
+            kind = TimelineStepKind.Search,
+            status = TimelineStepStatus.Active,
+        )
+        onStreamUpdate(
+            StreamingChatUpdate(
+                conversationId = this.conversationId,
+                userMessage = userMessage,
+                assistantMessage = ChatMessage(
+                    id = assistantId,
+                    role = ChatRole.Assistant,
+                    content = "",
+                    timeline = listOf(
+                        thinking.copy(status = TimelineStepStatus.Done),
+                        search,
+                    ),
+                    isStreaming = true,
+                ),
+            ),
+        )
+        delay(400)
+
+        var partial = ""
+        answer.chunked(12).forEach { chunk ->
+            partial += chunk
+            onStreamUpdate(
+                StreamingChatUpdate(
+                    conversationId = this.conversationId,
+                    userMessage = userMessage,
+                    assistantMessage = ChatMessage(
+                        id = assistantId,
+                        role = ChatRole.Assistant,
+                        content = partial,
+                        timeline = listOf(
+                            thinking.copy(status = TimelineStepStatus.Done),
+                            search.copy(status = TimelineStepStatus.Done),
+                        ),
+                        isStreaming = true,
+                    ),
+                ),
+            )
+            delay(80)
+        }
+
+        val assistantMessage = ChatMessage(
+            id = assistantId,
+            role = ChatRole.Assistant,
+            content = answer,
+            timeline = listOf(
+                thinking.copy(status = TimelineStepStatus.Done),
+                search.copy(status = TimelineStepStatus.Done),
+            ),
+            isStreaming = false,
         )
         messages += userMessage
         messages += assistantMessage

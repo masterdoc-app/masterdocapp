@@ -23,7 +23,7 @@ class MockChatRepositoryTest {
     fun send_appendsUserAndAssistantMessages() = runBlocking {
         repository.loadHistory(null).getOrThrow()
 
-        val result = repository.send("Почему много инея?", conversationId = null).getOrThrow()
+        val result = repository.send("Почему много инея?", conversationId = null, personaId = 1).getOrThrow()
 
         assertEquals(ChatRole.User, result.userMessage.role)
         assertEquals(ChatRole.Assistant, result.assistantMessage.role)

@@ -1,0 +1,136 @@
+package pro.masterdoc.app.ui.chat
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.unit.dp
+import pro.masterdoc.domain.chat.ChatTimelineStep
+import pro.masterdoc.domain.chat.TimelineStepKind
+import pro.masterdoc.domain.chat.TimelineStepStatus
+
+@Composable
+fun ChatAssistantTimeline(
+    steps: List<ChatTimelineStep>,
+    isStreaming: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    if (steps.isEmpty() && !isStreaming) return
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        steps.forEach { step ->
+            TimelineStepRow(step = step)
+        }
+        if (isStreaming && steps.none { it.status == TimelineStepStatus.Active }) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+                Text(
+                    text = "Формирую ответ…",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        if (steps.isNotEmpty()) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+        }
+    }
+}
+
+@Composable
+private fun TimelineStepRow(step: ChatTimelineStep) {
+    val isActive = step.status == TimelineStepStatus.Active
+    val isError = step.status == TimelineStepStatus.Error
+    var expanded by rememberSaveable(step.id) { mutableStateOf(isActive && step.kind == TimelineStepKind.Thinking) }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (isActive) {
+                CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+            } else {
+                Text(
+                    text = if (isError) "✕" else "✓",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isError) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    },
+                )
+            }
+            Text(
+                text = step.label,
+                style = MaterialTheme.typography.labelLarge,
+                color = if (isError) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                modifier = Modifier.weight(1f),
+            )
+        }
+
+        if (step.kind == TimelineStepKind.Thinking && step.detail.isNotBlank()) {
+            val preview = step.detail.lineSequence().take(2).joinToString(" ").take(120)
+            Text(
+                text = if (expanded) step.detail else preview,
+                style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(start = 22.dp, top = 4.dp)
+                    .clickable { expanded = !expanded },
+            )
+            if (step.detail.length > preview.length) {
+                Text(
+                    text = if (expanded) "Свернуть" else "Показать ход мыслей",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(start = 22.dp, top = 2.dp)
+                        .clickable { expanded = !expanded },
+                )
+            }
+        }
+
+        AnimatedVisibility(
+            visible = step.kind == TimelineStepKind.Search && isActive,
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
+            Text(
+                text = "Ищу в документации…",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 22.dp, top = 2.dp),
+            )
+        }
+    }
+}

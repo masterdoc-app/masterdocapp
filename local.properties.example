@@ -1,8 +1,11 @@
 # Copy to local.properties in the project root (local.properties is gitignored).
 # Values are baked into all KMP targets at compile time (Android, iOS, Desktop, Web).
 #
-# Onyx API base URL must include the /api prefix:
-onyx.baseUrl=http://80.87.196.33:3000/api
+# Masterdoc API base URL must include the /v1 prefix:
+masterdoc.api.baseUrl=https://api.masterdoc.pro/v1
 #
-# Personal access token: Onyx → Settings → Accounts & Access → Create New Token
-onyx.pat=
+# Local backend (./gradlew run in backend repo):
+# masterdoc.api.baseUrl=http://127.0.0.1:8081/v1
+#
+# Android emulator → host machine backend:
+# masterdoc.api.baseUrl=http://10.0.2.2:8081/v1

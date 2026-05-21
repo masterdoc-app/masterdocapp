@@ -12,6 +12,8 @@ interface ChatStore : Store<ChatStore.Intent, ChatStore.State, ChatStore.Label> 
         val isSending: Boolean = false,
         val error: String? = null,
         val conversationId: String? = null,
+        val personaId: Int? = null,
+        val assistantName: String? = null,
     )
 
     sealed interface Intent {
@@ -19,6 +21,8 @@ interface ChatStore : Store<ChatStore.Intent, ChatStore.State, ChatStore.Label> 
         data object SendClicked : Intent
         data object RetryLoad : Intent
         data object Refresh : Intent
+        data class BindAssistant(val id: Int, val name: String) : Intent
+        data object ResetSession : Intent
     }
 
     sealed interface Label {

@@ -5,6 +5,10 @@ import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 import pro.masterdoc.data.HttpClientFactory
+import pro.masterdoc.data.assistant.AssistantsApi
+import pro.masterdoc.data.assistant.AssistantsRepository
+import pro.masterdoc.data.assistant.HttpAssistantsRepository
+import pro.masterdoc.data.assistant.MockAssistantsRepository
 import pro.masterdoc.data.chat.ChatApi
 import pro.masterdoc.data.chat.ChatDataMode
 import pro.masterdoc.data.chat.ChatRepository
@@ -16,6 +20,7 @@ import pro.masterdoc.data.config.apiBaseUrl
 import pro.masterdoc.presentation.chat.ChatComponent
 import pro.masterdoc.presentation.chat.ChatStoreFactory
 import pro.masterdoc.presentation.chat.DefaultChatComponent
+import pro.masterdoc.presentation.equipment.EquipmentSelectionStoreFactory
 import pro.masterdoc.presentation.root.DefaultRootComponent
 import pro.masterdoc.presentation.root.RootComponent
 import pro.masterdoc.presentation.root.TabChild
@@ -28,7 +33,16 @@ val sharedModule = module {
     single { HttpClientFactory().create() }
     single { ApiConfig(baseUrl = apiBaseUrl()) }
 
+    factory { AssistantsApi(httpClient = get(), apiConfig = get()) }
     factory { ChatApi(httpClient = get(), apiConfig = get()) }
+
+    single<AssistantsRepository> {
+        when (defaultChatDataMode()) {
+            ChatDataMode.Mock -> MockAssistantsRepository()
+            ChatDataMode.Http -> HttpAssistantsRepository(api = get())
+        }
+    }
+
     single<ChatRepository> {
         when (defaultChatDataMode()) {
             ChatDataMode.Mock -> MockChatRepository()
@@ -36,6 +50,7 @@ val sharedModule = module {
         }
     }
 
+    factoryOf(::EquipmentSelectionStoreFactory)
     factoryOf(::ChatStoreFactory)
     factoryOf(::SearchStoreFactory)
 
@@ -43,6 +58,7 @@ val sharedModule = module {
         DefaultChatComponent(
             componentContext = params.get(),
             storeFactory = get(),
+            equipmentStoreFactory = get(),
         )
     }
 

@@ -17,4 +17,6 @@ data class ChatMessage(
     val content: String,
     val createdAt: String? = null,
     val status: ChatMessageStatus = ChatMessageStatus.Sent,
+    val timeline: List<ChatTimelineStep> = emptyList(),
+    val isStreaming: Boolean = false,
 )

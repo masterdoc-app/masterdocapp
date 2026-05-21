@@ -13,9 +13,20 @@ data class SendChatResult(
     val assistantMessage: ChatMessage,
 )
 
+data class StreamingChatUpdate(
+    val conversationId: String,
+    val userMessage: ChatMessage,
+    val assistantMessage: ChatMessage,
+)
+
 interface ChatRepository {
     suspend fun loadHistory(conversationId: String?): Result<ChatHistory>
-    suspend fun send(text: String, conversationId: String?): Result<SendChatResult>
+    suspend fun send(
+        text: String,
+        conversationId: String?,
+        personaId: Int,
+        onStreamUpdate: (StreamingChatUpdate) -> Unit = {},
+    ): Result<SendChatResult>
 }
 
 class ChatException(val userMessage: String) : Exception(userMessage)

@@ -19,7 +19,9 @@ val generateMasterdocBuildConfig = tasks.register("generateMasterdocBuildConfig"
     val generatedKotlinDir =
         layout.buildDirectory.dir("generated/masterdocBuildConfig/kotlin/pro/masterdoc/data/config")
     val generatedFile = generatedKotlinDir.map { it.file("MasterdocBuildConfig.kt") }
-    inputs.file(localPropertiesFile).optional()
+    if (localPropertiesFile.exists()) {
+        inputs.file(localPropertiesFile)
+    }
     outputs.file(generatedFile)
     doLast {
         val props = Properties()

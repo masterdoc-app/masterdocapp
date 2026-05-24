@@ -1,11 +1,5 @@
 # Copy to local.properties in the project root (local.properties is gitignored).
 # Values are baked into all KMP targets at compile time (Android, iOS, Desktop, Web).
 #
-# Masterdoc API base URL must include the /v1 prefix:
-masterdoc.api.baseUrl=https://api.masterdoc.pro/v1
-#
-# Local backend (./gradlew run in backend repo):
-# masterdoc.api.baseUrl=http://127.0.0.1:8081/v1
-#
-# Android emulator → host machine backend:
-# masterdoc.api.baseUrl=http://10.0.2.2:8081/v1
+# Production API (always use this unless the user explicitly asks for a local backend):
+masterdoc.api.baseUrl=http://api.masterdoc.pro/v1

@@ -1,3 +1,3 @@
 package pro.masterdoc.data.config
 
-internal actual fun defaultApiBaseUrl(): String = "http://127.0.0.1:8081/v1"
+internal actual fun defaultApiBaseUrl(): String = DEFAULT_API_BASE_URL

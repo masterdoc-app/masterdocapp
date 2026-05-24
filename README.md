@@ -26,13 +26,30 @@ Masterdoc App помогает разобраться с повседневны�
 
 Структура: `shared/` (логика), `composeApp/` (UI), `iosApp/` (оболочка Xcode).
 
+## API
+
+Все платформы по умолчанию ходят на продакшен:
+
+```text
+http://api.masterdoc.pro/v1
+```
+
+Настройка: `masterdoc.api.baseUrl` в `local.properties` (см. `local.properties.example` и [AGENTS.md](AGENTS.md)).
+
 ## Сборка и запуск
 
 ```bash
-./gradlew :composeApp:assembleDebug          # Android APK
-./gradlew :composeApp:run                    # Desktop
-./gradlew :composeApp:wasmJsBrowserDevelopmentRun  # Web (dev server)
+# Android APK
+./gradlew :composeApp:assembleDebug
+
+# Desktop
+./gradlew :composeApp:run
+
+# Web (dev server; may need ulimit -n on Linux)
+./gradlew :composeApp:wasmJsBrowserDevelopmentRun
 ```
+
+В **Android Studio** не вставляйте строки с `#` в поле Gradle tasks — Studio передаёт `#` как имя задачи (`Task '#' not found`). Запускайте через конфигурацию **Android App** (модуль `composeApp`) или только задачу `:composeApp:installDebug` без комментариев.
 
 iOS: см. [iosApp/README.md](iosApp/README.md).
 

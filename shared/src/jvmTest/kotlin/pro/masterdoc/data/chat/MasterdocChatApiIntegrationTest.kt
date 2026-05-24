@@ -3,6 +3,7 @@ package pro.masterdoc.data.chat
 import kotlinx.coroutines.runBlocking
 import pro.masterdoc.data.HttpClientFactory
 import pro.masterdoc.data.config.ApiConfig
+import pro.masterdoc.data.config.DEFAULT_API_BASE_URL
 import pro.masterdoc.data.config.MasterdocBuildConfig
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -16,7 +17,8 @@ class MasterdocChatApiIntegrationTest {
     @Test
     fun sendMessage_returnsAssistantReply() {
         if (System.getenv("MASTERDOC_INTEGRATION") != "1") return
-        val baseUrl = MasterdocBuildConfig.API_BASE_URL.ifBlank { "http://127.0.0.1:8081/v1" }
+        val baseUrl = System.getenv("MASTERDOC_API_BASE_URL")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: MasterdocBuildConfig.API_BASE_URL.ifBlank { DEFAULT_API_BASE_URL }
         runBlocking {
             val httpClient = HttpClientFactory().create()
             val api = ChatApi(httpClient, ApiConfig(baseUrl))

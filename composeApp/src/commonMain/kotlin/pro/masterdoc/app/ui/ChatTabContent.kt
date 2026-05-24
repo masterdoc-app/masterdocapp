@@ -1,7 +1,13 @@
 package pro.masterdoc.app.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,11 +19,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,6 +42,12 @@ import com.arkivanov.mvikotlin.extensions.coroutines.states
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.lazy.LazyListState
 import pro.masterdoc.app.ui.chat.ChatAssistantTimeline
+import pro.masterdoc.app.ui.chat.ChatMarkdownText
+import pro.masterdoc.app.ui.theme.AssistantMessageShape
+import pro.masterdoc.app.ui.theme.MasterdocDimens
+import pro.masterdoc.app.ui.theme.MasterdocLoadingIndicator
+import pro.masterdoc.app.ui.theme.MasterdocMessageSurface
+import pro.masterdoc.app.ui.theme.UserMessageShape
 import pro.masterdoc.domain.chat.ChatMessageStatus
 import pro.masterdoc.domain.chat.ChatRole
 import pro.masterdoc.presentation.chat.ChatComponent
@@ -98,10 +114,23 @@ private fun ChatConversationContent(
         ) {
             AssistChip(
                 onClick = onChangeEquipment,
-                label = { Text(assistantName) },
+                label = {
+                    Text(
+                        assistantName,
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                },
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    labelColor = MaterialTheme.colorScheme.onSurface,
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             )
             TextButton(onClick = onChangeEquipment) {
-                Text("Сменить")
+                Text(
+                    "Сменить",
+                    color = MaterialTheme.colorScheme.secondary,
+                )
             }
         }
 
@@ -112,7 +141,7 @@ private fun ChatConversationContent(
                     .padding(8.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator()
+                MasterdocLoadingIndicator()
             }
         }
 
@@ -165,23 +194,18 @@ private fun ChatMessageBubble(
     message: pro.masterdoc.domain.chat.ChatMessage,
 ) {
     val isUser = message.role == ChatRole.User
-    val bubbleColor = if (isUser) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant
-    }
     val alignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
+    val shape = if (isUser) UserMessageShape else AssistantMessageShape
 
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = alignment,
     ) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = bubbleColor,
-            modifier = Modifier.fillMaxWidth(0.85f),
+        MasterdocMessageSurface(
+            isUser = isUser,
+            shape = shape,
         ) {
-            Column(modifier = Modifier.padding(12.dp)) {
+            Column(modifier = Modifier.padding(MasterdocDimens.Space12)) {
                 if (!isUser) {
                     ChatAssistantTimeline(
                         steps = message.timeline,
@@ -189,13 +213,17 @@ private fun ChatMessageBubble(
                     )
                 }
                 if (message.content.isNotBlank() || isUser) {
-                    Text(text = message.content, style = MaterialTheme.typography.bodyLarge)
+                    if (isUser) {
+                        Text(text = message.content, style = MaterialTheme.typography.bodyLarge)
+                    } else {
+                        ChatMarkdownText(content = message.content)
+                    }
                 } else if (message.isStreaming) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        MasterdocLoadingIndicator(modifier = Modifier.size(16.dp))
                         Text(
                             text = "Ожидаю ответ…",
                             style = MaterialTheme.typography.bodyMedium,
@@ -223,27 +251,70 @@ private fun ChatInputBar(
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
     ) {
-        OutlinedTextField(
-            value = input,
-            onValueChange = onInputChange,
-            modifier = Modifier.weight(1f),
-            placeholder = { Text("Сообщение…") },
-            maxLines = 4,
-            enabled = !isSending,
-        )
-        TextButton(
-            onClick = onSend,
-            enabled = input.isNotBlank() && !isSending,
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(MasterdocDimens.Space12),
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8),
         ) {
-            Text(if (isSending) "…" else "Отправить")
+            OutlinedTextField(
+                value = input,
+                onValueChange = onInputChange,
+                modifier = Modifier
+                    .weight(1f)
+                    .onPreviewKeyEvent { event ->
+                        if (event.type != KeyEventType.KeyDown || event.key != Key.Enter) {
+                            return@onPreviewKeyEvent false
+                        }
+                        val insertNewLine = event.isCtrlPressed || event.isMetaPressed
+                        if (insertNewLine) {
+                            if (!isSending) {
+                                onInputChange(input + "\n")
+                            }
+                            return@onPreviewKeyEvent true
+                        }
+                        if (input.isNotBlank() && !isSending) {
+                            onSend()
+                        }
+                        true
+                    },
+                placeholder = {
+                    Text(
+                        "Сообщение…",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+                maxLines = 4,
+                enabled = !isSending,
+                shape = MaterialTheme.shapes.large,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.outline,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                ),
+            )
+            Button(
+                onClick = onSend,
+                enabled = input.isNotBlank() && !isSending,
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary,
+                ),
+            ) {
+                Text(
+                    if (isSending) "…" else "Отправить",
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
         }
     }
 }

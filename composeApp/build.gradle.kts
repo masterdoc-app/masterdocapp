@@ -49,6 +49,8 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.mvikotlin.extensions.coroutines)
+            implementation(libs.markdown.renderer)
+            implementation(libs.markdown.renderer.m3)
         }
 
         androidMain.dependencies {

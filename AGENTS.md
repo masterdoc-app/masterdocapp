@@ -34,6 +34,27 @@
 
 **Не мержить PR**, пока CI не прошёл. **Не считать задачу выполненной**, пока не проверены статусы CI на push.
 
+## API (обязательно)
+
+**Всегда** работаем с продакшен API:
+
+```text
+http://api.masterdoc.pro/v1
+```
+
+- В `local.properties`: `masterdoc.api.baseUrl=http://api.masterdoc.pro/v1` (см. `local.properties.example`).
+- После `certbot --nginx` на VPS можно перейти на `https://api.masterdoc.pro/v1`.
+- Если ключ пустой, все платформы берут тот же URL из `DEFAULT_API_BASE_URL` в `shared/.../ApiConfig.kt`.
+- **Не** переключать на `127.0.0.1` / `10.0.2.2` без явной просьбы пользователя.
+- После смены URL в `local.properties` — пересобрать приложение (`./gradlew check` или `./scripts/run-web.sh`).
+
+Проверка:
+
+```bash
+curl -fsS http://api.masterdoc.pro/health
+curl -fsS http://api.masterdoc.pro/v1/assistants
+```
+
 ## Стек
 
 - Compose Multiplatform, Decompose, MVIKotlin, Koin, Ktor (REST, без локальной БД в v1)

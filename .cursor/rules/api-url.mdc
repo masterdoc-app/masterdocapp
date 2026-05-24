@@ -1,0 +1,18 @@
+---
+description: Masterdoc app always uses production API base URL
+globs: masterdocapp/**/*
+alwaysApply: true
+---
+
+# Masterdoc API URL
+
+Always use production API unless the user explicitly requests a local backend:
+
+```text
+http://api.masterdoc.pro/v1
+```
+
+- Set `masterdoc.api.baseUrl=http://api.masterdoc.pro/v1` in `local.properties`.
+- Code default: `DEFAULT_API_BASE_URL` in `shared/src/commonMain/kotlin/pro/masterdoc/data/config/ApiConfig.kt`.
+- Do not point the app at `127.0.0.1` or `10.0.2.2` without explicit user request.
+- After changing `local.properties`, rebuild the app.

@@ -13,9 +13,125 @@
             overflow: hidden;
             background: #fafafa;
         }
+        #masterdoc-camera-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: #000;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-end;
+        }
+        #masterdoc-camera-overlay.active {
+            display: flex;
+        }
+        #masterdoc-camera-preview {
+            flex: 1;
+            width: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+        #masterdoc-camera-actions {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.85);
+        }
+        #masterdoc-camera-actions button {
+            flex: 1;
+            border: 0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font: 600 16px/1.2 system-ui, sans-serif;
+            cursor: pointer;
+        }
+        #masterdoc-camera-capture {
+            background: #286df8;
+            color: #fff;
+        }
+        #masterdoc-camera-cancel {
+            background: #fff;
+            color: #1a1a1a;
+        }
     </style>
+    <script>
+        window.masterdocCaptureCamera = function(onSuccess, onError) {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                onError("mediaDevices unavailable");
+                return;
+            }
+
+            var overlay = document.getElementById("masterdoc-camera-overlay");
+            var video = document.getElementById("masterdoc-camera-preview");
+            var captureButton = document.getElementById("masterdoc-camera-capture");
+            var cancelButton = document.getElementById("masterdoc-camera-cancel");
+            var stream = null;
+
+            function cleanup() {
+                if (stream) {
+                    stream.getTracks().forEach(function(track) { track.stop(); });
+                    stream = null;
+                }
+                video.srcObject = null;
+                overlay.classList.remove("active");
+            }
+
+            navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: "environment" } },
+                audio: false
+            }).then(function(activeStream) {
+                stream = activeStream;
+                video.srcObject = stream;
+                video.playsInline = true;
+                video.muted = true;
+                return video.play();
+            }).then(function() {
+                overlay.classList.add("active");
+            }).catch(function(error) {
+                cleanup();
+                onError(String(error));
+            });
+
+            captureButton.onclick = function() {
+                if (!stream) {
+                    cleanup();
+                    onError("camera stream missing");
+                    return;
+                }
+                var canvas = document.createElement("canvas");
+                canvas.width = video.videoWidth || 1280;
+                canvas.height = video.videoHeight || 720;
+                canvas.getContext("2d").drawImage(video, 0, 0);
+                cleanup();
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        onError("empty photo");
+                        return;
+                    }
+                    blob.arrayBuffer().then(function(buffer) {
+                        onSuccess(new Uint8Array(buffer));
+                    }).catch(function(error) {
+                        onError(String(error));
+                    });
+                }, "image/jpeg", 0.9);
+            };
+
+            cancelButton.onclick = function() {
+                cleanup();
+                onError("cancelled");
+            };
+        };
+    </script>
 </head>
 <body>
+<div id="masterdoc-camera-overlay">
+    <video id="masterdoc-camera-preview" autoplay muted playsinline></video>
+    <div id="masterdoc-camera-actions">
+        <button id="masterdoc-camera-cancel" type="button">Отмена</button>
+        <button id="masterdoc-camera-capture" type="button">Снять</button>
+    </div>
+</div>
 <script src="composeApp.js?v=1"></script>
 </body>
 </html>

@@ -1,29 +1,21 @@
 package pro.masterdoc.app.platform
 
-import android.content.Context
-import android.net.Uri
+import android.Manifest
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.FileProvider
-import java.io.File
+import androidx.core.content.ContextCompat
+import java.io.ByteArrayOutputStream
 
 @Composable
 actual fun rememberImagePickerLaunchers(
     onResult: (PickedImage?) -> Unit,
 ): ImagePickerLaunchers {
     val context = LocalContext.current
-    val cameraPhotoFile = remember { createCameraPhotoFile(context) }
-    val cameraPhotoUri = remember {
-        FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            cameraPhotoFile,
-        )
-    }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -49,35 +41,46 @@ actual fun rememberImagePickerLaunchers(
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-    ) { success ->
-        if (!success || !cameraPhotoFile.exists() || cameraPhotoFile.length() == 0L) {
+        contract = ActivityResultContracts.TakePicturePreview(),
+    ) { bitmap: Bitmap? ->
+        if (bitmap == null) {
             onResult(null)
             return@rememberLauncherForActivityResult
         }
-        val bytes = cameraPhotoFile.readBytes()
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+        val bytes = stream.toByteArray()
         println("[masterdoc detect] android camera picked ${bytes.size} bytes")
         onResult(PickedImage(bytes, "camera.jpg", "image/jpeg"))
     }
 
-    return remember {
-        ImagePickerLaunchers(
-            openGallery = {
-                galleryLauncher.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
-                )
-            },
-            openCamera = {
-                cameraPhotoFile.parentFile?.mkdirs()
-                cameraPhotoFile.delete()
-                cameraLauncher.launch(cameraPhotoUri)
-            },
-        )
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) {
+            cameraLauncher.launch(null)
+        } else {
+            println("[masterdoc detect] android camera permission denied")
+            onResult(null)
+        }
     }
-}
 
-private fun createCameraPhotoFile(context: Context): File =
-    File(context.cacheDir, "camera/detect.jpg")
+    fun launchCamera() {
+        when (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)) {
+            PackageManager.PERMISSION_GRANTED -> cameraLauncher.launch(null)
+            else -> permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    return ImagePickerLaunchers(
+        openGallery = {
+            galleryLauncher.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+            )
+        },
+        openCamera = ::launchCamera,
+    )
+}
 
 private fun guessContentType(fileName: String): String = when {
     fileName.endsWith(".png", ignoreCase = true) -> "image/png"

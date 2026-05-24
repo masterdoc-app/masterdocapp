@@ -19,10 +19,10 @@ actual fun rememberImagePickerLaunchers(
 ): ImagePickerLaunchers {
     val onResultState = rememberUpdatedState(onResult)
     val galleryInput = remember {
-        createFileInput(capture = false) { onResultState.value(it) }
+        createFileInput(source = PhotoInputSource.Gallery) { onResultState.value(it) }
     }
     val cameraInput = remember {
-        createFileInput(capture = true) { onResultState.value(it) }
+        createFileInput(source = PhotoInputSource.Camera) { onResultState.value(it) }
     }
 
     DisposableEffect(Unit) {
@@ -38,37 +38,51 @@ actual fun rememberImagePickerLaunchers(
     )
 }
 
+private enum class PhotoInputSource {
+    Gallery,
+    Camera,
+}
+
 private fun createFileInput(
-    capture: Boolean,
+    source: PhotoInputSource,
     onResult: (PickedImage?) -> Unit,
 ): HTMLInputElement {
     val input = document.createElement("input") as HTMLInputElement
     input.type = "file"
-    input.accept = "image/*"
-    if (capture) {
-        input.setAttribute("capture", "environment")
-    }
     input.style.display = "none"
+    when (source) {
+        PhotoInputSource.Gallery -> {
+            input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/gif"
+            input.removeAttribute("capture")
+        }
+        PhotoInputSource.Camera -> {
+            // Camera-only hint for mobile browsers; desktop may still offer a file picker.
+            input.accept = "image/*"
+            input.setAttribute("capture", "environment")
+        }
+    }
     input.onchange = {
         val file = input.files?.item(0)
         input.value = ""
         if (file == null) {
             onResult(null)
         } else {
-        file.readBytes { bytes ->
-            if (bytes.isEmpty()) {
-                onResult(null)
-            } else {
-                println("[masterdoc detect] wasm picked ${bytes.size} bytes from ${file.name}")
-                onResult(
-                    PickedImage(
-                        bytes = bytes,
-                        fileName = file.name.ifBlank { if (capture) "camera.jpg" else "photo.jpg" },
-                        contentType = file.type.ifBlank { guessContentType(file.name) },
-                    ),
-                )
+            file.readBytes { bytes ->
+                if (bytes.isEmpty()) {
+                    onResult(null)
+                } else {
+                    println("[masterdoc detect] wasm ${source.name.lowercase()} picked ${bytes.size} bytes from ${file.name}")
+                    onResult(
+                        PickedImage(
+                            bytes = bytes,
+                            fileName = file.name.ifBlank {
+                                if (source == PhotoInputSource.Camera) "camera.jpg" else "photo.jpg"
+                            },
+                            contentType = file.type.ifBlank { guessContentType(file.name) },
+                        ),
+                    )
+                }
             }
-        }
         }
     }
     document.body?.appendChild(input)

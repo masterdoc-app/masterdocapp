@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.mvikotlin.extensions.coroutines.states
+import kotlinx.coroutines.delay
 import pro.masterdoc.app.platform.rememberImagePickerLaunchers
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocLoadingIndicator
@@ -29,10 +31,16 @@ import pro.masterdoc.app.ui.theme.MasterdocSecondaryButton
 import pro.masterdoc.app.ui.theme.MasterdocSelectableCard
 import pro.masterdoc.presentation.equipment.EquipmentSelectionStore
 
+private enum class PendingPhotoSource {
+    Gallery,
+    Camera,
+}
+
 @Composable
 fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
     val state by store.states.collectAsState(initial = store.state)
     var showPhotoSourceDialog by remember { mutableStateOf(false) }
+    var pendingPhotoSource by remember { mutableStateOf<PendingPhotoSource?>(null) }
 
     val imagePickers = rememberImagePickerLaunchers { picked ->
         if (picked == null || picked.bytes.isEmpty()) {
@@ -48,17 +56,28 @@ fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
         )
     }
 
+    LaunchedEffect(pendingPhotoSource) {
+        when (pendingPhotoSource) {
+            null -> return@LaunchedEffect
+            PendingPhotoSource.Gallery -> {
+                showPhotoSourceDialog = false
+                delay(PHOTO_PICKER_DISMISS_DELAY_MS)
+                imagePickers.openGallery()
+            }
+            PendingPhotoSource.Camera -> {
+                showPhotoSourceDialog = false
+                delay(PHOTO_PICKER_DISMISS_DELAY_MS)
+                imagePickers.openCamera()
+            }
+        }
+        pendingPhotoSource = null
+    }
+
     if (showPhotoSourceDialog) {
         MasterdocPhotoSourceDialog(
             onDismiss = { showPhotoSourceDialog = false },
-            onGallery = {
-                showPhotoSourceDialog = false
-                imagePickers.openGallery()
-            },
-            onCamera = {
-                showPhotoSourceDialog = false
-                imagePickers.openCamera()
-            },
+            onGallery = { pendingPhotoSource = PendingPhotoSource.Gallery },
+            onCamera = { pendingPhotoSource = PendingPhotoSource.Camera },
         )
     }
 
@@ -141,3 +160,5 @@ fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
         }
     }
 }
+
+private const val PHOTO_PICKER_DISMISS_DELAY_MS = 150L

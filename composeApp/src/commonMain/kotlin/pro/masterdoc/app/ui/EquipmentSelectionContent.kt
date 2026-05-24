@@ -8,26 +8,84 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.mvikotlin.extensions.coroutines.states
+import pro.masterdoc.app.platform.rememberImagePickerLaunchers
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocLoadingIndicator
 import pro.masterdoc.app.ui.theme.MasterdocPrimaryButton
 import pro.masterdoc.app.ui.theme.MasterdocScreenTitle
 import pro.masterdoc.app.ui.theme.MasterdocSecondaryButton
 import pro.masterdoc.app.ui.theme.MasterdocSelectableCard
-import pro.masterdoc.domain.assistant.Assistant
 import pro.masterdoc.presentation.equipment.EquipmentSelectionStore
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
     val state by store.states.collectAsState(initial = store.state)
+    var showPhotoSourceDialog by remember { mutableStateOf(false) }
+
+    val imagePickers = rememberImagePickerLaunchers { picked ->
+        if (picked == null || picked.bytes.isEmpty()) {
+            println("[masterdoc detect] photo pick cancelled or empty")
+            return@rememberImagePickerLaunchers
+        }
+        store.accept(
+            EquipmentSelectionStore.Intent.DetectFromPhoto(
+                imageBytes = picked.bytes,
+                fileName = picked.fileName,
+                contentType = picked.contentType,
+            ),
+        )
+    }
+
+    if (showPhotoSourceDialog) {
+        BasicAlertDialog(onDismissRequest = { showPhotoSourceDialog = false }) {
+            Surface(shape = MaterialTheme.shapes.large) {
+                Column(
+                    modifier = Modifier.padding(MasterdocDimens.Space16),
+                    verticalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8),
+                ) {
+                    Text("Добавить фото", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Выберите источник изображения",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    MasterdocPrimaryButton(
+                        text = "Из галереи",
+                        onClick = {
+                            showPhotoSourceDialog = false
+                            imagePickers.openGallery()
+                        },
+                    )
+                    MasterdocSecondaryButton(
+                        text = "С камеры",
+                        onClick = {
+                            showPhotoSourceDialog = false
+                            imagePickers.openCamera()
+                        },
+                    )
+                    TextButton(onClick = { showPhotoSourceDialog = false }) {
+                        Text("Отмена")
+                    }
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -38,10 +96,33 @@ fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
         MasterdocScreenTitle(text = "Выберите оборудование")
 
         MasterdocPrimaryButton(
-            text = "Определить по фото (скоро)",
-            onClick = { },
-            enabled = false,
+            text = when {
+                state.isDetecting -> "Определяем по фото…"
+                else -> "Определить по фото"
+            },
+            onClick = {
+                store.accept(EquipmentSelectionStore.Intent.ClearDetectError)
+                showPhotoSourceDialog = true
+            },
+            enabled = !state.isLoading && !state.isDetecting,
         )
+
+        if (state.isDetecting) {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(MasterdocDimens.Space8),
+                contentAlignment = Alignment.Center,
+            ) {
+                MasterdocLoadingIndicator()
+            }
+        }
+
+        state.detectError?.let { error ->
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
 
         if (state.isLoading) {
             Box(

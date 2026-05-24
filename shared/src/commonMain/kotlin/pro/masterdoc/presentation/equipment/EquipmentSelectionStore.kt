@@ -10,6 +10,8 @@ interface EquipmentSelectionStore :
         val assistants: List<Assistant> = emptyList(),
         val isLoading: Boolean = false,
         val error: String? = null,
+        val isDetecting: Boolean = false,
+        val detectError: String? = null,
         val selectedAssistant: Assistant? = null,
     )
 
@@ -17,6 +19,12 @@ interface EquipmentSelectionStore :
         data object RetryLoad : Intent
         data class Select(val assistant: Assistant) : Intent
         data object ClearSelection : Intent
+        data class DetectFromPhoto(
+            val imageBytes: ByteArray,
+            val fileName: String,
+            val contentType: String,
+        ) : Intent
+        data object ClearDetectError : Intent
     }
 
     sealed interface Label

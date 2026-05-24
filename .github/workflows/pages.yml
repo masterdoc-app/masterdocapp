@@ -28,6 +28,9 @@ jobs:
 
       - run: chmod +x gradlew
 
+      - name: Prepare HTTPS API URL for web build
+        run: echo "masterdoc.api.baseUrl=https://api.masterdoc.pro/v1" > local.properties
+
       - name: Build Web distribution
         run: ./gradlew :composeApp:wasmJsBrowserDistribution --stacktrace
 

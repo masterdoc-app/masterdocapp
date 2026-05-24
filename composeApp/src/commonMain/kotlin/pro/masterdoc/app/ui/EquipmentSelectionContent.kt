@@ -8,12 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,13 +22,13 @@ import com.arkivanov.mvikotlin.extensions.coroutines.states
 import pro.masterdoc.app.platform.rememberImagePickerLaunchers
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocLoadingIndicator
+import pro.masterdoc.app.ui.theme.MasterdocPhotoSourceDialog
 import pro.masterdoc.app.ui.theme.MasterdocPrimaryButton
 import pro.masterdoc.app.ui.theme.MasterdocScreenTitle
 import pro.masterdoc.app.ui.theme.MasterdocSecondaryButton
 import pro.masterdoc.app.ui.theme.MasterdocSelectableCard
 import pro.masterdoc.presentation.equipment.EquipmentSelectionStore
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
     val state by store.states.collectAsState(initial = store.state)
@@ -53,38 +49,17 @@ fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
     }
 
     if (showPhotoSourceDialog) {
-        BasicAlertDialog(onDismissRequest = { showPhotoSourceDialog = false }) {
-            Surface(shape = MaterialTheme.shapes.large) {
-                Column(
-                    modifier = Modifier.padding(MasterdocDimens.Space16),
-                    verticalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8),
-                ) {
-                    Text("Добавить фото", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        "Выберите источник изображения",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    MasterdocPrimaryButton(
-                        text = "Из галереи",
-                        onClick = {
-                            showPhotoSourceDialog = false
-                            imagePickers.openGallery()
-                        },
-                    )
-                    MasterdocSecondaryButton(
-                        text = "С камеры",
-                        onClick = {
-                            showPhotoSourceDialog = false
-                            imagePickers.openCamera()
-                        },
-                    )
-                    TextButton(onClick = { showPhotoSourceDialog = false }) {
-                        Text("Отмена")
-                    }
-                }
-            }
-        }
+        MasterdocPhotoSourceDialog(
+            onDismiss = { showPhotoSourceDialog = false },
+            onGallery = {
+                showPhotoSourceDialog = false
+                imagePickers.openGallery()
+            },
+            onCamera = {
+                showPhotoSourceDialog = false
+                imagePickers.openCamera()
+            },
+        )
     }
 
     Column(

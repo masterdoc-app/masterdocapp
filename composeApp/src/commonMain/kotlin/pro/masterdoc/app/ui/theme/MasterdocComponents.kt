@@ -1,14 +1,19 @@
 package pro.masterdoc.app.ui.theme
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -82,17 +87,78 @@ fun MasterdocPrimaryButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MasterdocDialog(
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    BasicAlertDialog(onDismissRequest = onDismissRequest) {
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = MasterdocDimens.Space24),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            tonalElevation = 0.dp,
+            shadowElevation = 6.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(MasterdocDimens.Space20),
+                verticalArrangement = Arrangement.spacedBy(MasterdocDimens.Space12),
+                content = content,
+            )
+        }
+    }
+}
+
+@Composable
+fun MasterdocPhotoSourceDialog(
+    onDismiss: () -> Unit,
+    onGallery: () -> Unit,
+    onCamera: () -> Unit,
+) {
+    MasterdocDialog(onDismissRequest = onDismiss) {
+        Text(
+            text = "Добавить фото",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = "Выберите источник изображения",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        MasterdocSelectableCard(
+            title = "Из галереи",
+            onClick = onGallery,
+        )
+        MasterdocSelectableCard(
+            title = "С камеры",
+            onClick = onCamera,
+        )
+        MasterdocSecondaryButton(
+            text = "Отмена",
+            onClick = onDismiss,
+            fillMaxWidth = true,
+        )
+    }
+}
+
 @Composable
 fun MasterdocSecondaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    fillMaxWidth: Boolean = false,
 ) {
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier,
+        modifier = if (fillMaxWidth) modifier.fillMaxWidth() else modifier,
         shape = MaterialTheme.shapes.medium,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         colors = ButtonDefaults.outlinedButtonColors(

@@ -57,7 +57,7 @@ actual fun rememberImagePickerLaunchers(
             openGallery = {
                 galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             },
-            openCamera = { cameraLauncher.launch(Unit) },
+            openCamera = { cameraLauncher.launch(null) },
         )
     }
 }

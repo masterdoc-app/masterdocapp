@@ -3,6 +3,7 @@ package pro.masterdoc.app.platform
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import kotlinx.browser.document
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
@@ -16,8 +17,13 @@ import org.w3c.files.get
 actual fun rememberImagePickerLaunchers(
     onResult: (PickedImage?) -> Unit,
 ): ImagePickerLaunchers {
-    val galleryInput = remember { createFileInput(capture = false, onResult) }
-    val cameraInput = remember { createFileInput(capture = true, onResult) }
+    val onResultState = rememberUpdatedState(onResult)
+    val galleryInput = remember {
+        createFileInput(capture = false) { onResultState.value(it) }
+    }
+    val cameraInput = remember {
+        createFileInput(capture = true) { onResultState.value(it) }
+    }
 
     DisposableEffect(Unit) {
         onDispose {

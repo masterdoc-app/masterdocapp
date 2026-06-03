@@ -16,7 +16,10 @@ fun main() {
     val root = createRootComponent(DefaultComponentContext(lifecycle = lifecycle))
     lifecycle.onCreate()
 
-    ComposeViewport(document.body!!) {
+    val viewportRoot =
+        document.getElementById("masterdoc-compose-root")
+            ?: document.body!!
+    ComposeViewport(viewportRoot) {
         App(rootComponent = root)
     }
 }

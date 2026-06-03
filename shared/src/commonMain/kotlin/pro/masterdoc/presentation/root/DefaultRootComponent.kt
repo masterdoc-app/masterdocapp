@@ -1,39 +1,128 @@
 package pro.masterdoc.presentation.root
 
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.router.pages.ChildPages
-import com.arkivanov.decompose.router.pages.Pages
-import com.arkivanov.decompose.router.pages.PagesNavigation
-import com.arkivanov.decompose.router.pages.childPages
-import com.arkivanov.decompose.router.pages.select
+import com.arkivanov.decompose.DelicateDecomposeApi
+import com.arkivanov.decompose.router.stack.ChildStack
+import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.childStack
+import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.popTo
+import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
+import pro.masterdoc.domain.chat.ChatRole
+import pro.masterdoc.presentation.chat.ChatComponent
+import pro.masterdoc.presentation.chat.ChatStore
+import pro.masterdoc.presentation.equipment.EquipmentSelectionStore
+import pro.masterdoc.presentation.summary.SummaryStore
+import pro.masterdoc.presentation.summary.SummaryStoreFactory
 
 class DefaultRootComponent(
     componentContext: ComponentContext,
-    private val chatFactory: (ComponentContext) -> TabChild.Chat,
-    private val searchFactory: (ComponentContext) -> TabChild.Search,
+    chatFactory: (ComponentContext) -> ChatComponent,
+    private val summaryStoreFactory: SummaryStoreFactory,
 ) : RootComponent, ComponentContext by componentContext {
 
-    private val navigation = PagesNavigation<TabConfig>()
+    private val navigation = StackNavigation<FlowConfig>()
 
-    override val pages: Value<ChildPages<TabConfig, TabChild>> = childPages(
-        source = navigation,
-        serializer = TabConfig.serializer(),
-        initialPages = {
-            Pages(
-                items = listOf(TabConfig.Chat, TabConfig.Search),
-                selectedIndex = 0,
-            )
-        },
-        childFactory = { config, childContext ->
+    override val stack: Value<ChildStack<FlowConfig, FlowChild>> =
+        childStack(
+            source = navigation,
+            initialStack = { listOf(FlowConfig.Scan) },
+            saveStack = { null },
+            restoreStack = { null },
+            handleBackButton = true,
+        ) { config, _ ->
             when (config) {
-                TabConfig.Chat -> chatFactory(childContext)
-                TabConfig.Search -> searchFactory(childContext)
+                FlowConfig.Scan -> FlowChild.Scan
+                FlowConfig.Camera -> FlowChild.Camera
+                FlowConfig.ChatDescribe -> FlowChild.ChatDescribe
+                FlowConfig.ChatGuide -> FlowChild.ChatGuide
+                FlowConfig.Summary -> FlowChild.Summary
             }
-        },
-    )
+        }
 
-    override fun onTabSelected(index: Int) {
-        navigation.select(index)
+    override val chat: ChatComponent by lazy { chatFactory(this) }
+    override val summary: SummaryStore by lazy { summaryStoreFactory.create() }
+
+    @OptIn(DelicateDecomposeApi::class)
+    override fun onEquipmentReady() {
+        val selected = chat.equipmentStore.state.selectedAssistant ?: return
+        chat.store.accept(ChatStore.Intent.BindAssistant(selected.id, selected.name))
+        navigation.push(FlowConfig.ChatDescribe)
+    }
+
+    @OptIn(DelicateDecomposeApi::class)
+    override fun onOpenCamera() {
+        navigation.push(FlowConfig.Camera)
+    }
+
+    override fun onCameraPhotoResult(imageBytes: ByteArray, fileName: String, contentType: String) {
+        navigation.pop()
+        chat.equipmentStore.accept(
+            EquipmentSelectionStore.Intent.DetectFromPhoto(
+                imageBytes = imageBytes,
+                fileName = fileName,
+                contentType = contentType,
+            ),
+        )
+    }
+
+    override fun onCameraCancelled() {
+        navigation.pop()
+    }
+
+    @OptIn(DelicateDecomposeApi::class)
+    override fun onOpenChatGuide() {
+        navigation.push(FlowConfig.ChatGuide)
+    }
+
+    @OptIn(DelicateDecomposeApi::class)
+    override fun onOpenSummary() {
+        prefillSummaryFromSession()
+        navigation.push(FlowConfig.Summary)
+    }
+
+    private fun prefillSummaryFromSession() {
+        val equipment = chat.equipmentStore.state.selectedAssistant
+        val chatState = chat.store.state
+        summary.accept(
+            SummaryStore.Intent.BindSessionContext(
+                assistantId = equipment?.id,
+                assistantName = equipment?.name,
+                conversationId = chatState.conversationId,
+            ),
+        )
+        val userText = chatState.messages
+            .filter { it.role == ChatRole.User }
+            .joinToString("\n") { it.content.trim() }
+            .trim()
+        val assistantText = chatState.messages
+            .filter { it.role == ChatRole.Assistant }
+            .lastOrNull()
+            ?.content
+            ?.trim()
+            .orEmpty()
+        summary.accept(
+            SummaryStore.Intent.PrefillFromSession(
+                reported = userText,
+                resolved = assistantText,
+            ),
+        )
+    }
+
+    override fun onBack() {
+        navigation.pop()
+    }
+
+    @OptIn(DelicateDecomposeApi::class)
+    override fun onFinishAndRestart() {
+        onResetSession()
+        navigation.popTo(0)
+    }
+
+    override fun onResetSession() {
+        chat.store.accept(ChatStore.Intent.ResetSession)
+        chat.equipmentStore.accept(EquipmentSelectionStore.Intent.ClearSelection)
+        summary.accept(SummaryStore.Intent.Reset)
     }
 }

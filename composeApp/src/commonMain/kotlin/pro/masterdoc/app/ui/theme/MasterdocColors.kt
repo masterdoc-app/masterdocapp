@@ -2,74 +2,73 @@ package pro.masterdoc.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-/**
- * Masterdoc palette — inspired by Onyx (stone tint, ink primary, blue links).
- * @see https://github.com/onyx-dot-app/onyx (colors.css)
- */
+/** Raw palette — lite.masterdoc.pro paper / ink / flare. */
 object MasterdocPalette {
-    // Grey (Onyx grey scale)
-    val Grey100 = Color(0xFF000000)
-    val Grey90 = Color(0xFF1A1A1A)
-    val Grey80 = Color(0xFF333333)
-    val Grey50 = Color(0xFF808080)
-    val Grey40 = Color(0xFFA4A4A4)
-    val Grey20 = Color(0xFFCCCCCC)
-    val Grey10 = Color(0xFFE6E6E6)
-    val Grey06 = Color(0xFFF0F0F0)
-    val Grey04 = Color(0xFFF5F5F5)
-    val Grey02 = Color(0xFFFAFAFA)
-    val Grey00 = Color(0xFFFFFFFF)
+    val Paper = MasterdocLiteTokens.Paper
+    val Paper2 = MasterdocLiteTokens.Paper2
+    val Paper3 = MasterdocLiteTokens.Paper3
+    val Paper4 = MasterdocLiteTokens.Paper4
+    val Rule = MasterdocLiteTokens.Rule
+    val Rule2 = MasterdocLiteTokens.Rule2
+    val Ink = MasterdocLiteTokens.Ink
+    val Ink2 = MasterdocLiteTokens.Ink2
+    val Ink3 = MasterdocLiteTokens.Ink3
+    val Flare = MasterdocLiteTokens.Flare
+    val FlareSoft = MasterdocLiteTokens.FlareSoft
+    val FlareTint = MasterdocLiteTokens.FlareTint
+    val Forest = MasterdocLiteTokens.Forest
+    val ForestSoft = MasterdocLiteTokens.ForestSoft
+    val WarmRed = MasterdocLiteTokens.WarmRed
+    val Marian = MasterdocLiteTokens.Marian
 
-    // Stone tint (Onyx sidebar / app chrome)
-    val Stone10 = Color(0xFFE6E6E9)
-    val Stone05 = Color(0xFFF0F0F1)
-    val Stone02 = Color(0xFFFAFAFA)
-
-    // Onyx brand ink
-    val Ink100 = Color(0xFF000000)
-    val Ink95 = Color(0xFF1C1C1C)
-    val Ink90 = Color(0xFF333333)
-
-    // Action blue
-    val Blue50 = Color(0xFF286DF8)
-    val Blue40 = Color(0xFF508AFB)
-    val Blue10 = Color(0xFFCDDFFF)
-    val Blue05 = Color(0xFFE7EFFC)
-    val Blue01 = Color(0xFFF8FAFE)
-
-    // Status
-    val Red50 = Color(0xFFDC2626)
-    val Red10 = Color(0xFFFED2CC)
-    val Red05 = Color(0xFFFCEAE7)
-    val Green50 = Color(0xFF00A43F)
-    val Green10 = Color(0xFFC9E8CC)
-
-    // Text on light (alpha black)
-    val TextPrimary = Color(0xE6000000) // ~90%
-    val TextSecondary = Color(0x8C000000) // ~55%
-    val TextTertiary = Color(0x73000000) // ~45%
+    // Legacy aliases (Onyx-era names) → lite tokens
+    val Grey00 = Paper
+    val Grey02 = Paper2
+    val Grey06 = Paper2
+    val Grey10 = Rule
+    val Grey20 = Rule2
+    val Stone02 = Paper
+    val Stone05 = Paper2
+    val Ink95 = Ink
+    val Ink90 = Ink2
+    val Ink100 = Ink
+    val Blue50 = Flare
+    val Blue05 = FlareSoft
+    val Blue40 = Flare
+    val Red50 = WarmRed
+    val Red05 = WarmRed.copy(alpha = 0.08f)
+    val Green50 = Forest
+    val TextPrimary = Ink
+    val TextSecondary = Ink2
+    val TextTertiary = Ink3
 }
 
-/** Semantic tokens for UI (light theme). */
+/** Semantic tokens for Compose UI. */
 object MasterdocColors {
-    val AppBackground = MasterdocPalette.Stone02
-    val Surface = MasterdocPalette.Grey00
-    val SurfaceMuted = MasterdocPalette.Grey02
-    val SurfaceTint = MasterdocPalette.Stone05
-    val Border = MasterdocPalette.Grey10
-    val BorderStrong = MasterdocPalette.Grey20
+    val AppBackground = MasterdocPalette.Paper
+    val Surface = MasterdocPalette.Paper
+    val SurfaceElevated = MasterdocPalette.Paper2
+    val SurfaceMuted = MasterdocPalette.Paper3
+    val SurfaceTint = MasterdocPalette.Paper2
+    val Border = MasterdocPalette.Rule
+    val BorderStrong = MasterdocPalette.Rule2
 
-    val TextPrimary = MasterdocPalette.TextPrimary
-    val TextSecondary = MasterdocPalette.TextSecondary
-    val TextTertiary = MasterdocPalette.TextTertiary
+    val TextPrimary = MasterdocPalette.Ink
+    val TextSecondary = MasterdocPalette.Ink2
+    val TextTertiary = MasterdocPalette.Ink3
 
-    val Accent = MasterdocPalette.Blue50
-    val AccentMuted = MasterdocPalette.Blue05
-    val OnAccent = MasterdocPalette.Grey00
+    val Accent = MasterdocPalette.Flare
+    val AccentMuted = MasterdocPalette.FlareSoft
+    val AccentTint = MasterdocLiteTokens.FlareTint
+    val OnAccent = MasterdocPalette.Paper
 
-    val UserBubble = MasterdocPalette.Stone05
-    val AssistantBubble = MasterdocPalette.Grey00
-    val TimelineActive = MasterdocPalette.Blue50
-    val TimelineDone = MasterdocPalette.Green50
-    val TimelineError = MasterdocPalette.Red50
+    val UserBubble = MasterdocPalette.Ink
+    val UserBubbleContent = MasterdocPalette.Paper
+    val AssistantBubble = MasterdocPalette.Paper
+    val TimelineActive = MasterdocPalette.Flare
+    val TimelineDone = MasterdocPalette.Forest
+    val TimelineError = MasterdocPalette.WarmRed
+
+    val Success = MasterdocPalette.Forest
+    val SuccessMuted = MasterdocPalette.ForestSoft
 }

@@ -10,6 +10,7 @@ import javax.swing.SwingUtilities
 @Composable
 actual fun rememberImagePickerLaunchers(
     onResult: (PickedImage?) -> Unit,
+    onCameraError: (String) -> Unit,
 ): ImagePickerLaunchers {
     fun pickFromDisk() {
         SwingUtilities.invokeLater {

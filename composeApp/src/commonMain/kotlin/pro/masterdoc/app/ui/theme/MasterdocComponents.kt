@@ -1,12 +1,25 @@
 package pro.masterdoc.app.ui.theme
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -19,9 +32,23 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+
+/** Paper gradient used in lite `.convo` screens. */
+@Composable
+fun Modifier.masterdocConvoBackground(): Modifier {
+    val top = MaterialTheme.colorScheme.background
+    val bottom = MaterialTheme.colorScheme.surfaceVariant
+    return background(Brush.verticalGradient(listOf(top, bottom)))
+}
 
 @Composable
 fun MasterdocScreenTitle(
@@ -37,6 +64,245 @@ fun MasterdocScreenTitle(
 }
 
 @Composable
+fun MasterdocMonoLabel(
+    text: String,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.labelMedium,
+    color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurfaceVariant,
+) {
+    Text(
+        text = text.uppercase(),
+        style = style,
+        color = color,
+        modifier = modifier,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+/** lite `.app-head` — station context bar. */
+@Composable
+fun LiteAppHead(
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
+    onMenuClick: (() -> Unit)? = null,
+    subtitleLive: Boolean = false,
+    markLetter: String? = null,
+    markColor: androidx.compose.ui.graphics.Color = MasterdocPalette.Marian,
+) {
+    val fonts = LocalMasterdocFontFamilies.current
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawLine(
+                    color = MasterdocPalette.Rule,
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = 1.dp.toPx(),
+                )
+            }
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = MasterdocDimens.Space16, vertical = MasterdocDimens.Space10),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(MasterdocDimens.Space10),
+    ) {
+        if (onBack != null) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.size(MasterdocDimens.NavIconTouch),
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Назад",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(MasterdocDimens.NavIconSize),
+                )
+            }
+        } else if (markLetter != null) {
+            Box(
+                modifier = Modifier
+                    .size(26.dp)
+                    .background(markColor, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = markLetter,
+                    style = MasterdocLiteTextStyles.serifEmphasis(fonts).copy(
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                )
+            }
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8),
+            ) {
+                if (subtitleLive) {
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .background(MasterdocColors.Success, CircleShape),
+                    )
+                }
+                MasterdocMonoLabel(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        if (onMenuClick != null) {
+            Column(
+                modifier = Modifier
+                    .clickable(onClick = onMenuClick)
+                    .padding(MasterdocDimens.Space4),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                repeat(3) {
+                    Box(
+                        modifier = Modifier
+                            .size(3.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onSurfaceVariant,
+                                CircleShape,
+                            ),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Large scan CTA — lite listen-panel rings + flare fill. */
+@Composable
+fun LiteCameraHeroButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    isLoading: Boolean = false,
+) {
+    val buttonSize = MasterdocDimens.CameraHeroSize
+    val ringSize = MasterdocDimens.CameraHeroRing
+    Box(
+        modifier = modifier.size(ringSize),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(ringSize)
+                .border(1.5.dp, MasterdocLiteTokens.FlareBorder.copy(alpha = 0.22f), CircleShape),
+        )
+        Box(
+            modifier = Modifier
+                .size(ringSize * 0.82f)
+                .border(1.5.dp, MasterdocLiteTokens.FlareBorder.copy(alpha = 0.35f), CircleShape),
+        )
+        Box(
+            modifier = Modifier
+                .size(buttonSize)
+                .clickable(enabled = enabled && !isLoading, onClick = onClick)
+                .background(
+                    color = if (enabled) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant,
+                    shape = CircleShape,
+                )
+                .border(3.dp, MasterdocLiteTokens.FlareTint, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (isLoading) {
+                MasterdocLoadingIndicator(modifier = Modifier.size(32.dp))
+            } else {
+                Icon(
+                    imageVector = Icons.Filled.PhotoCamera,
+                    contentDescription = "Сканировать камерой",
+                    tint = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.size(44.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun LiteMicHeroButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    size: androidx.compose.ui.unit.Dp = MasterdocDimens.MicHeroSize,
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .background(MaterialTheme.colorScheme.secondary, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Mic,
+                contentDescription = "Микрофон",
+                tint = MaterialTheme.colorScheme.onSecondary,
+                modifier = Modifier.size(size * 0.48f),
+            )
+        }
+    }
+}
+
+@Composable
+fun LiteListenPanel(
+    label: String,
+    hint: String,
+    onMicClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isListening: Boolean = false,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawLine(
+                    color = MasterdocPalette.Rule,
+                    start = Offset(0f, 0f),
+                    end = Offset(size.width, 0f),
+                    strokeWidth = 1.dp.toPx(),
+                )
+            }
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = MasterdocDimens.Space14, vertical = MasterdocDimens.Space18),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8),
+    ) {
+        LiteMicHeroButton(onClick = onMicClick, size = 56.dp)
+        MasterdocMonoLabel(
+            text = if (isListening) label else label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+        Text(
+            text = hint,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
 fun MasterdocSelectableCard(
     title: String,
     onClick: () -> Unit,
@@ -47,7 +313,7 @@ fun MasterdocSelectableCard(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
+        shape = LiteOptionShape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -63,6 +329,69 @@ fun MasterdocSelectableCard(
     }
 }
 
+/** lite `.opt` — guided troubleshooting step. */
+@Composable
+fun LiteOptionCard(
+    letter: String,
+    body: String,
+    modifier: Modifier = Modifier,
+) {
+    val fonts = LocalMasterdocFontFamilies.current
+    Surface(
+        modifier = modifier.fillMaxWidth(MasterdocDimens.OptMaxWidthFraction),
+        shape = LiteOptionShape,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = MasterdocDimens.Space11, vertical = MasterdocDimens.Space9),
+            horizontalArrangement = Arrangement.spacedBy(MasterdocDimens.Space9),
+        ) {
+            Surface(
+                shape = RoundedCornerShapeCompat4,
+                color = MasterdocColors.AccentMuted,
+                border = BorderStroke(1.dp, MasterdocLiteTokens.FlareBorder),
+            ) {
+                Text(
+                    text = letter,
+                    style = MasterdocLiteTextStyles.optLetter(fonts),
+                    modifier = Modifier.padding(horizontal = MasterdocDimens.Space5, vertical = 1.dp),
+                )
+            }
+            Text(
+                text = body,
+                style = MasterdocLiteTextStyles.optBody(fonts),
+            )
+        }
+    }
+}
+
+private val RoundedCornerShapeCompat4 = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
+
+@Composable
+fun LiteChip(
+    text: String,
+    modifier: Modifier = Modifier,
+    flare: Boolean = false,
+) {
+    val container = if (flare) MasterdocColors.AccentMuted else MaterialTheme.colorScheme.surfaceVariant
+    val border = if (flare) MasterdocLiteTokens.FlareBorder else MaterialTheme.colorScheme.outline
+    val content = if (flare) MasterdocColors.Accent else MaterialTheme.colorScheme.onSurfaceVariant
+    Surface(
+        modifier = modifier,
+        shape = LiteChipShape,
+        color = container,
+        border = BorderStroke(1.dp, border),
+    ) {
+        MasterdocMonoLabel(
+            text = text,
+            modifier = Modifier.padding(horizontal = MasterdocDimens.Space9, vertical = MasterdocDimens.Space4),
+            style = MaterialTheme.typography.labelSmall,
+            color = content,
+        )
+    }
+}
+
 @Composable
 fun MasterdocPrimaryButton(
     text: String,
@@ -74,14 +403,36 @@ fun MasterdocPrimaryButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
+        shape = LiteButtonShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
             disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
-        contentPadding = PaddingValues(vertical = 14.dp, horizontal = MasterdocDimens.Space16),
+        contentPadding = PaddingValues(vertical = 14.dp, horizontal = MasterdocDimens.Space18),
+    ) {
+        Text(text, style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+@Composable
+fun LiteFlareButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier,
+        shape = LiteButtonShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.secondary,
+            contentColor = MaterialTheme.colorScheme.onSecondary,
+        ),
+        contentPadding = PaddingValues(vertical = 11.dp, horizontal = MasterdocDimens.Space18),
     ) {
         Text(text, style = MaterialTheme.typography.labelLarge)
     }
@@ -99,7 +450,7 @@ fun MasterdocDialog(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(horizontal = MasterdocDimens.Space24),
-            shape = MaterialTheme.shapes.large,
+            shape = LiteOptionShape,
             color = MaterialTheme.colorScheme.surface,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             tonalElevation = 0.dp,
@@ -131,14 +482,8 @@ fun MasterdocPhotoSourceDialog(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        MasterdocSelectableCard(
-            title = "Из галереи",
-            onClick = onGallery,
-        )
-        MasterdocSelectableCard(
-            title = "С камеры",
-            onClick = onCamera,
-        )
+        MasterdocSelectableCard(title = "Из галереи", onClick = onGallery)
+        MasterdocSelectableCard(title = "С камеры", onClick = onCamera)
         MasterdocSecondaryButton(
             text = "Отмена",
             onClick = onDismiss,
@@ -159,8 +504,8 @@ fun MasterdocSecondaryButton(
         onClick = onClick,
         enabled = enabled,
         modifier = if (fillMaxWidth) modifier.fillMaxWidth() else modifier,
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        shape = LiteButtonShape,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = MaterialTheme.colorScheme.onSurface,
         ),
@@ -176,16 +521,13 @@ fun MasterdocMessageSurface(
     isUser: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val container = if (isUser) {
-        MaterialTheme.colorScheme.surfaceVariant
-    } else {
-        MaterialTheme.colorScheme.surface
-    }
+    val container = if (isUser) MasterdocColors.UserBubble else MasterdocColors.AssistantBubble
+    val border = if (isUser) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     Surface(
         modifier = modifier.fillMaxWidth(MasterdocDimens.BubbleMaxWidthFraction),
         shape = shape,
         color = container,
-        border = if (isUser) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = border,
         tonalElevation = 0.dp,
         content = content,
     )

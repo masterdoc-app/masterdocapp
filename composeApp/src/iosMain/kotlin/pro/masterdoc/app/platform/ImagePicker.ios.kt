@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 @Composable
 actual fun rememberImagePickerLaunchers(
     onResult: (PickedImage?) -> Unit,
+    onCameraError: (String) -> Unit,
 ): ImagePickerLaunchers = remember {
     ImagePickerLaunchers(
         openGallery = { onResult(null) },

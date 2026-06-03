@@ -2,7 +2,6 @@ package pro.masterdoc.di
 
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
-import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 import pro.masterdoc.data.HttpClientFactory
 import pro.masterdoc.data.assistant.AssistantsApi
@@ -23,10 +22,7 @@ import pro.masterdoc.presentation.chat.DefaultChatComponent
 import pro.masterdoc.presentation.equipment.EquipmentSelectionStoreFactory
 import pro.masterdoc.presentation.root.DefaultRootComponent
 import pro.masterdoc.presentation.root.RootComponent
-import pro.masterdoc.presentation.root.TabChild
-import pro.masterdoc.presentation.search.DefaultSearchComponent
-import pro.masterdoc.presentation.search.SearchComponent
-import pro.masterdoc.presentation.search.SearchStoreFactory
+import pro.masterdoc.presentation.summary.SummaryStoreFactory
 
 val sharedModule = module {
     single<StoreFactory> { DefaultStoreFactory() }
@@ -50,9 +46,9 @@ val sharedModule = module {
         }
     }
 
-    factoryOf(::EquipmentSelectionStoreFactory)
-    factoryOf(::ChatStoreFactory)
-    factoryOf(::SearchStoreFactory)
+    factory { EquipmentSelectionStoreFactory(storeFactory = get(), repository = get()) }
+    factory { ChatStoreFactory(storeFactory = get(), repository = get()) }
+    factory { SummaryStoreFactory(storeFactory = get()) }
 
     factory<ChatComponent> { params ->
         DefaultChatComponent(
@@ -62,22 +58,13 @@ val sharedModule = module {
         )
     }
 
-    factory<SearchComponent> { params ->
-        DefaultSearchComponent(
-            componentContext = params.get(),
-            storeFactory = get(),
-        )
-    }
-
     factory<RootComponent> { params ->
         DefaultRootComponent(
             componentContext = params.get(),
-            chatFactory = { childContext ->
-                TabChild.Chat(get { org.koin.core.parameter.parametersOf(childContext) })
+            chatFactory = { chatContext ->
+                get<ChatComponent> { org.koin.core.parameter.parametersOf(chatContext) }
             },
-            searchFactory = { childContext ->
-                TabChild.Search(get { org.koin.core.parameter.parametersOf(childContext) })
-            },
+            summaryStoreFactory = get(),
         )
     }
 }

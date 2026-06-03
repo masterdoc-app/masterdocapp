@@ -1,5 +1,6 @@
 package pro.masterdoc.app.ui
 
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -47,6 +48,7 @@ import pro.masterdoc.app.ui.theme.AssistantMessageShape
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocLoadingIndicator
 import pro.masterdoc.app.ui.theme.MasterdocMessageSurface
+import pro.masterdoc.app.ui.theme.LiteFieldShape
 import pro.masterdoc.app.ui.theme.UserMessageShape
 import pro.masterdoc.domain.chat.ChatMessageStatus
 import pro.masterdoc.domain.chat.ChatRole
@@ -214,7 +216,11 @@ private fun ChatMessageBubble(
                 }
                 if (message.content.isNotBlank() || isUser) {
                     if (isUser) {
-                        Text(text = message.content, style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = message.content,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
                     } else {
                         ChatMarkdownText(content = message.content)
                     }
@@ -253,7 +259,7 @@ private fun ChatInputBar(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
@@ -293,7 +299,7 @@ private fun ChatInputBar(
                 },
                 maxLines = 4,
                 enabled = !isSending,
-                shape = MaterialTheme.shapes.large,
+                shape = LiteFieldShape,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.outline,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
@@ -304,14 +310,14 @@ private fun ChatInputBar(
             Button(
                 onClick = onSend,
                 enabled = input.isNotBlank() && !isSending,
-                shape = MaterialTheme.shapes.large,
+                shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary,
                 ),
             ) {
                 Text(
-                    if (isSending) "…" else "Отправить",
+                    if (isSending) "…" else "→",
                     style = MaterialTheme.typography.labelLarge,
                 )
             }

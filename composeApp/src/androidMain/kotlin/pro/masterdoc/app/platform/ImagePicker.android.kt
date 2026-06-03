@@ -14,6 +14,7 @@ import java.io.ByteArrayOutputStream
 @Composable
 actual fun rememberImagePickerLaunchers(
     onResult: (PickedImage?) -> Unit,
+    onCameraError: (String) -> Unit,
 ): ImagePickerLaunchers {
     val context = LocalContext.current
 
@@ -61,6 +62,7 @@ actual fun rememberImagePickerLaunchers(
             cameraLauncher.launch(null)
         } else {
             println("[masterdoc detect] android camera permission denied")
+            onCameraError("Нет доступа к камере")
             onResult(null)
         }
     }

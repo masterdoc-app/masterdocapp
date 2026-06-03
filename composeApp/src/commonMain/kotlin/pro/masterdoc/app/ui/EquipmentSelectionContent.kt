@@ -42,19 +42,21 @@ fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
     var showPhotoSourceDialog by remember { mutableStateOf(false) }
     var pendingPhotoSource by remember { mutableStateOf<PendingPhotoSource?>(null) }
 
-    val imagePickers = rememberImagePickerLaunchers { picked ->
-        if (picked == null || picked.bytes.isEmpty()) {
-            println("[masterdoc detect] photo pick cancelled or empty")
-            return@rememberImagePickerLaunchers
-        }
-        store.accept(
-            EquipmentSelectionStore.Intent.DetectFromPhoto(
-                imageBytes = picked.bytes,
-                fileName = picked.fileName,
-                contentType = picked.contentType,
-            ),
-        )
-    }
+    val imagePickers = rememberImagePickerLaunchers(
+        onResult = { picked ->
+            if (picked == null || picked.bytes.isEmpty()) {
+                println("[masterdoc detect] photo pick cancelled or empty")
+                return@rememberImagePickerLaunchers
+            }
+            store.accept(
+                EquipmentSelectionStore.Intent.DetectFromPhoto(
+                    imageBytes = picked.bytes,
+                    fileName = picked.fileName,
+                    contentType = picked.contentType,
+                ),
+            )
+        },
+    )
 
     LaunchedEffect(pendingPhotoSource) {
         when (pendingPhotoSource) {

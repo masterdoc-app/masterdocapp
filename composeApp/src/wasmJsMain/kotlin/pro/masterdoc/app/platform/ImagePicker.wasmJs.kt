@@ -7,6 +7,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import kotlinx.browser.document
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
+import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
 import org.w3c.dom.HTMLInputElement
 import org.w3c.files.File
@@ -18,8 +19,10 @@ import kotlin.js.JsName
 @Composable
 actual fun rememberImagePickerLaunchers(
     onResult: (PickedImage?) -> Unit,
+    onCameraError: (String) -> Unit,
 ): ImagePickerLaunchers {
     val onResultState = rememberUpdatedState(onResult)
+    val onErrorState = rememberUpdatedState(onCameraError)
     val galleryInput = remember {
         createGalleryFileInput { onResultState.value(it) }
     }
@@ -34,17 +37,12 @@ actual fun rememberImagePickerLaunchers(
         openGallery = { galleryInput.click() },
         openCamera = {
             masterdocCaptureCamera(
-                onSuccess = { data ->
-                    deliverPickedFile(
-                        bytes = jsUint8ArrayToByteArray(data),
-                        fileName = "camera.jpg",
-                        contentTypeRaw = "image/jpeg",
-                        onResult = onResultState.value,
-                    )
-                },
+                onSuccess = { data -> handleCameraPayload(data, onResultState.value) },
                 onError = { error ->
-                    if (error.toString() != "cancelled") {
-                        println("[masterdoc detect] wasm camera failed: $error")
+                    val message = error.toString()
+                    if (message != "cancelled") {
+                        println("[masterdoc detect] wasm camera failed: $message")
+                        onErrorState.value(cameraErrorMessage(message))
                     }
                     onResultState.value(null)
                 },
@@ -58,6 +56,49 @@ private external fun masterdocCaptureCamera(
     onSuccess: (JsAny) -> Unit,
     onError: (JsAny) -> Unit,
 )
+
+private fun handleCameraPayload(data: JsAny, onResult: (PickedImage?) -> Unit) {
+    val bytes = jsPayloadToByteArray(data)
+    deliverPickedFile(
+        bytes = bytes,
+        fileName = "camera.jpg",
+        contentTypeRaw = "image/jpeg",
+        onResult = onResult,
+    )
+}
+
+private fun jsPayloadToByteArray(data: JsAny): ByteArray = when (data) {
+    is ArrayBuffer -> arrayBufferToByteArray(data)
+    else -> {
+        val uint8 = data.unsafeCast<Uint8Array>()
+        ByteArray(uint8.length) { index -> uint8[index].toByte() }
+    }
+}
+
+private fun arrayBufferToByteArray(buffer: ArrayBuffer): ByteArray {
+    val view = Int8Array(buffer)
+    return ByteArray(view.length) { index -> view[index] }
+}
+
+private fun cameraErrorMessage(raw: String): String = when {
+    raw.contains("Permission", ignoreCase = true) ||
+        raw.contains("NotAllowed", ignoreCase = true) ->
+        "Нет доступа к камере. Разрешите камеру в браузере или выберите станцию из списка."
+    raw.contains("NotFound", ignoreCase = true) ||
+        raw.contains("DevicesNotFound", ignoreCase = true) ->
+        "Камера не найдена. Используйте список оборудования."
+    raw.contains("NotReadable", ignoreCase = true) ->
+        "Камера занята другим приложением или недоступна. Закройте другие вкладки с камерой и попробуйте снова."
+    raw.contains("insecure-context", ignoreCase = true) ->
+        "Камера в браузере доступна только по HTTPS. Откройте приложение по защищённому адресу."
+    raw.contains("mediaDevices unavailable", ignoreCase = true) ->
+        "Браузер не поддерживает камеру. Используйте Chrome или Safari."
+    raw.contains("not ready", ignoreCase = true) ||
+        raw.contains("empty photo", ignoreCase = true) ||
+        raw.contains("preview timeout", ignoreCase = true) ->
+        "Не удалось снять кадр. Дождитесь превью и нажмите «Снять» ещё раз."
+    else -> "Камера недоступна: $raw"
+}
 
 private fun createGalleryFileInput(
     onResult: (PickedImage?) -> Unit,
@@ -82,11 +123,6 @@ private fun createGalleryFileInput(
     return input
 }
 
-private fun jsUint8ArrayToByteArray(data: JsAny): ByteArray {
-    val view = data.unsafeCast<Int8Array>()
-    return ByteArray(view.length) { index -> view[index] }
-}
-
 private fun deliverPickedFile(
     bytes: ByteArray,
     fileName: String,
@@ -109,8 +145,7 @@ private fun File.readBytes(onReady: (ByteArray) -> Unit) {
         if (buffer == null) {
             onReady(ByteArray(0))
         } else {
-            val view = Int8Array(buffer)
-            onReady(ByteArray(view.length) { index -> view[index] })
+            onReady(arrayBufferToByteArray(buffer))
         }
     }
     reader.onerror = {

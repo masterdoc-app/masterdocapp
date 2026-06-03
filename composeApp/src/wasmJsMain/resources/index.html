@@ -15,127 +15,185 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background: #fafafa;
+            background: #FBF8F3;
+        }
+        #masterdoc-compose-root {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+        }
+        #masterdoc-compose-root canvas {
+            display: block;
+        }
+        body.masterdoc-camera-open #masterdoc-compose-root {
+            visibility: hidden;
         }
         #masterdoc-camera-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            z-index: 10000;
+            z-index: 2147483647;
             background: #000;
-            flex-direction: column;
-            align-items: stretch;
-            justify-content: flex-end;
+            pointer-events: auto;
         }
         #masterdoc-camera-overlay.active {
-            display: flex;
+            display: block;
         }
         #masterdoc-camera-preview {
-            flex: 1;
+            position: absolute;
+            inset: 0;
             width: 100%;
+            height: 100%;
             object-fit: cover;
-            background: #000;
+            background: #111;
         }
-        #masterdoc-camera-actions {
+        #masterdoc-camera-status {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: #FBF8F3;
+            font: 600 15px/1.4 "IBM Plex Sans", system-ui, sans-serif;
+            text-align: center;
+            padding: 24px;
+            pointer-events: none;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.35);
+        }
+        #masterdoc-camera-overlay.waiting #masterdoc-camera-status {
             display: flex;
-            gap: 12px;
-            padding: 16px;
-            background: rgba(0, 0, 0, 0.85);
         }
-        #masterdoc-camera-actions button {
-            flex: 1;
+        #masterdoc-camera-hint {
+            position: absolute;
+            top: max(20px, env(safe-area-inset-top));
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: rgba(251, 248, 243, 0.92);
+            font: 600 11px/1.2 "JetBrains Mono", monospace;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 3;
+            padding: 0 56px;
+        }
+        #masterdoc-camera-back {
+            position: absolute;
+            top: max(12px, env(safe-area-inset-top));
+            left: max(12px, env(safe-area-inset-left));
+            z-index: 4;
+            width: 48px;
+            height: 48px;
             border: 0;
-            border-radius: 12px;
-            padding: 14px 16px;
-            font: 600 16px/1.2 system-ui, sans-serif;
+            border-radius: 50%;
+            background: rgba(26, 24, 20, 0.55);
+            color: #FBF8F3;
+            font: 600 28px/1 "IBM Plex Sans", system-ui, sans-serif;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 0 2px 0;
+        }
+        #masterdoc-camera-controls {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 24px max(32px, env(safe-area-inset-bottom));
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+            pointer-events: none;
         }
         #masterdoc-camera-capture {
-            background: #286df8;
-            color: #fff;
+            pointer-events: auto;
+            width: 76px;
+            height: 76px;
+            border: 4px solid #FBF8F3;
+            border-radius: 50%;
+            padding: 4px;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
         }
-        #masterdoc-camera-cancel {
-            background: #fff;
-            color: #1a1a1a;
+        #masterdoc-camera-capture:disabled {
+            opacity: 0.45;
+            cursor: wait;
+        }
+        #masterdoc-camera-capture.ready:active .masterdoc-shutter-inner {
+            transform: scale(0.88);
+        }
+        .masterdoc-shutter-inner {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #FBF8F3;
+            transition: transform 0.12s ease;
+        }
+        #masterdoc-camera-capture.ready .masterdoc-shutter-inner {
+            background: #C2410C;
+        }
+        #masterdoc-camera-file-input {
+            display: none;
         }
     </style>
-    <script>
-        window.masterdocCaptureCamera = function(onSuccess, onError) {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                onError("mediaDevices unavailable");
-                return;
-            }
-
-            var overlay = document.getElementById("masterdoc-camera-overlay");
-            var video = document.getElementById("masterdoc-camera-preview");
-            var captureButton = document.getElementById("masterdoc-camera-capture");
-            var cancelButton = document.getElementById("masterdoc-camera-cancel");
-            var stream = null;
-
-            function cleanup() {
-                if (stream) {
-                    stream.getTracks().forEach(function(track) { track.stop(); });
-                    stream = null;
-                }
-                video.srcObject = null;
-                overlay.classList.remove("active");
-            }
-
-            navigator.mediaDevices.getUserMedia({
-                video: { facingMode: { ideal: "environment" } },
-                audio: false
-            }).then(function(activeStream) {
-                stream = activeStream;
-                video.srcObject = stream;
-                video.playsInline = true;
-                video.muted = true;
-                return video.play();
-            }).then(function() {
-                overlay.classList.add("active");
-            }).catch(function(error) {
-                cleanup();
-                onError(String(error));
-            });
-
-            captureButton.onclick = function() {
-                if (!stream) {
-                    cleanup();
-                    onError("camera stream missing");
-                    return;
-                }
-                var canvas = document.createElement("canvas");
-                canvas.width = video.videoWidth || 1280;
-                canvas.height = video.videoHeight || 720;
-                canvas.getContext("2d").drawImage(video, 0, 0);
-                cleanup();
-                canvas.toBlob(function(blob) {
-                    if (!blob) {
-                        onError("empty photo");
-                        return;
-                    }
-                    blob.arrayBuffer().then(function(buffer) {
-                        onSuccess(new Uint8Array(buffer));
-                    }).catch(function(error) {
-                        onError(String(error));
-                    });
-                }, "image/jpeg", 0.9);
-            };
-
-            cancelButton.onclick = function() {
-                cleanup();
-                onError("cancelled");
-            };
-        };
-    </script>
 </head>
 <body>
-<div id="masterdoc-camera-overlay">
-    <video id="masterdoc-camera-preview" autoplay muted playsinline></video>
-    <div id="masterdoc-camera-actions">
-        <button id="masterdoc-camera-cancel" type="button">Отмена</button>
-        <button id="masterdoc-camera-capture" type="button">Снять</button>
-    </div>
-</div>
-<script src="composeApp.js?v=1"></script>
+<div id="masterdoc-compose-root"></div>
+<script>
+    window.__masterdocLastKotlinError = null;
+    window.addEventListener("error", function (event) {
+        if (event.error && event.error.message) {
+            window.__masterdocLastKotlinError = event.error.message + "\n" + (event.error.stack || "");
+        }
+    });
+    window.addEventListener("unhandledrejection", function (event) {
+        var reason = event.reason;
+        if (reason && reason.message) {
+            window.__masterdocLastKotlinError = reason.message + "\n" + (reason.stack || "");
+        }
+    });
+</script>
+<script src="masterdoc-camera.js?v=27"></script>
+<script src="composeApp.js?v=26"></script>
+<script>
+    // composeApp.js is an async webpack bundle; globalThis.composeApp is a Promise.
+    (function () {
+        var boot = globalThis.composeApp;
+        if (!boot || typeof boot.then !== "function") {
+            console.error("[masterdoc] composeApp.js did not register globalThis.composeApp");
+            return;
+        }
+        boot.then(function () {
+            console.info("[masterdoc] wasm ready");
+        }).catch(function (err) {
+            console.error("[masterdoc] wasm boot failed", err);
+            var detail = window.__masterdocLastKotlinError || "";
+            if (!detail && err && err.message) detail = err.message;
+            if (!detail && err && err.isException) {
+                try {
+                    var tags = WebAssembly.Exception.prototype.is
+                        ? err.is(["WebAssembly.Exception"])
+                        : false;
+                    if (tags) detail = "WebAssembly.Exception (см. Console → фильтр без расширений)";
+                } catch (ignore) {}
+            }
+            if (!detail) detail = String(err);
+            var el = document.createElement("pre");
+            el.style.cssText = "color:#b91c1c;padding:16px;font:14px/1.4 system-ui;white-space:pre-wrap";
+            el.textContent = "Ошибка загрузки приложения. Пересоберите web: bash scripts/run-web.sh\n\n" + detail;
+            document.body.appendChild(el);
+        });
+    })();
+</script>
 </body>
 </html>

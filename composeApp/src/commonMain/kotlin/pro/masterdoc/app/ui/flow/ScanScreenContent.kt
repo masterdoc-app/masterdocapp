@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -254,34 +255,53 @@ private fun EquipmentListPane(
             onMenuClick = onMenuClick,
         )
 
-        if (state.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(MasterdocDimens.Space24),
-                contentAlignment = Alignment.Center,
-            ) {
-                MasterdocLoadingIndicator()
-            }
-        }
-
-        state.error?.let { error ->
-            Text(text = error, color = MaterialTheme.colorScheme.error)
-            MasterdocSecondaryButton(
-                text = "Повторить",
-                onClick = { equipmentStore.accept(EquipmentSelectionStore.Intent.RetryLoad) },
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8),
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
         ) {
-            items(state.assistants, key = { it.id }) { assistant ->
-                MasterdocSelectableCard(
-                    title = assistant.name,
-                    onClick = {
-                        equipmentStore.accept(EquipmentSelectionStore.Intent.Select(assistant))
-                    },
-                )
+            when {
+                state.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        MasterdocLoadingIndicator()
+                    }
+                }
+                state.error != null -> {
+                    val errorMessage = state.error.orEmpty()
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(top = MasterdocDimens.Space8),
+                    ) {
+                        Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+                        MasterdocSecondaryButton(
+                            text = "Повторить",
+                            onClick = { equipmentStore.accept(EquipmentSelectionStore.Intent.RetryLoad) },
+                        )
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(
+                            MasterdocDimens.Space8,
+                            alignment = Alignment.Bottom,
+                        ),
+                        contentPadding = PaddingValues(bottom = MasterdocDimens.Space16),
+                    ) {
+                        items(state.assistants, key = { it.id }) { assistant ->
+                            MasterdocSelectableCard(
+                                title = assistant.name,
+                                onClick = {
+                                    equipmentStore.accept(EquipmentSelectionStore.Intent.Select(assistant))
+                                },
+                            )
+                        }
+                    }
+                }
             }
         }
     }

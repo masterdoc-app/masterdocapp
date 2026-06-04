@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.arkivanov.mvikotlin.extensions.coroutines.states
+import pro.masterdoc.app.ui.chat.masterdocChatInputKeys
 import pro.masterdoc.app.ui.theme.LiteAppHead
 import pro.masterdoc.app.ui.theme.LiteFieldShape
 import pro.masterdoc.app.ui.theme.LiteListenPanel
@@ -67,7 +68,13 @@ fun ChatDescribeScreenContent(
                 onValueChange = { chat.store.accept(ChatStore.Intent.InputChanged(it)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = MasterdocDimens.Space14),
+                    .padding(horizontal = MasterdocDimens.Space14)
+                    .masterdocChatInputKeys(
+                        input = chatState.input,
+                        isSending = chatState.isSending,
+                        onInputChange = { chat.store.accept(ChatStore.Intent.InputChanged(it)) },
+                        onSend = { chat.store.accept(ChatStore.Intent.SendClicked) },
+                    ),
                 placeholder = { Text("Опишите, что происходит…") },
                 minLines = 2,
                 maxLines = 4,

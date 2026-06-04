@@ -2,13 +2,6 @@ package pro.masterdoc.app.ui
 
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isMetaPressed
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,6 +36,7 @@ import com.arkivanov.mvikotlin.extensions.coroutines.states
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.lazy.LazyListState
 import pro.masterdoc.app.ui.chat.ChatAssistantTimeline
+import pro.masterdoc.app.ui.chat.masterdocChatInputKeys
 import pro.masterdoc.app.ui.chat.ChatMarkdownText
 import pro.masterdoc.app.ui.theme.AssistantMessageShape
 import pro.masterdoc.app.ui.theme.MasterdocDimens
@@ -275,22 +269,12 @@ private fun ChatInputBar(
                 onValueChange = onInputChange,
                 modifier = Modifier
                     .weight(1f)
-                    .onPreviewKeyEvent { event ->
-                        if (event.type != KeyEventType.KeyDown || event.key != Key.Enter) {
-                            return@onPreviewKeyEvent false
-                        }
-                        val insertNewLine = event.isCtrlPressed || event.isMetaPressed
-                        if (insertNewLine) {
-                            if (!isSending) {
-                                onInputChange(input + "\n")
-                            }
-                            return@onPreviewKeyEvent true
-                        }
-                        if (input.isNotBlank() && !isSending) {
-                            onSend()
-                        }
-                        true
-                    },
+                    .masterdocChatInputKeys(
+                        input = input,
+                        isSending = isSending,
+                        onInputChange = onInputChange,
+                        onSend = onSend,
+                    ),
                 placeholder = {
                     Text(
                         "Сообщение…",

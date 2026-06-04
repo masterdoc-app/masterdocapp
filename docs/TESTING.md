@@ -44,7 +44,8 @@ export MASTERDOC_INTEGRATION=1
 | Класс | Что проверяет |
 |-------|----------------|
 | `LiteAppHeadBackTest` | Кнопка «Назад» в `LiteAppHead` (`MasterdocTestTags.APP_HEAD_BACK`) |
-| `MasterdocDetectLoadingOverlayTest` | Оверлей «Распознаём станцию…» при `isDetecting` (`MasterdocTestTags.DETECT_LOADING_OVERLAY`) |
+| `MasterdocDetectLoadingOverlayTest` | Оверлей «Распознаём станцию…» (`DETECT_LOADING_OVERLAY`, `DETECT_LOADING_TITLE`) |
+| `ScanScreenDetectLoaderTest` | Появление/скрытие оверлея на экране скана при `isDetecting` |
 
 ## Ручная проверка (Web + камера)
 

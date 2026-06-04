@@ -17,6 +17,7 @@ class MasterdocDetectLoadingOverlayTest {
             }
         }
         onNodeWithTag(MasterdocTestTags.DETECT_LOADING_OVERLAY).assertIsDisplayed()
+        onNodeWithTag(MasterdocTestTags.DETECT_LOADING_TITLE).assertIsDisplayed()
     }
 
     @Test

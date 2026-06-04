@@ -626,6 +626,7 @@ fun MasterdocDetectLoadingOverlay(
                 }
                 MasterdocMonoLabel(
                     text = title,
+                    modifier = Modifier.testTag(MasterdocTestTags.DETECT_LOADING_TITLE),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.secondary,
                 )

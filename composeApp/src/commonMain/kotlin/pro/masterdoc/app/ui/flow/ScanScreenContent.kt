@@ -134,7 +134,7 @@ fun ScanScreenContent(
 }
 
 @Composable
-private fun ScanMainPane(
+internal fun ScanMainPane(
     state: EquipmentSelectionStore.State,
     cameraError: String?,
     onCameraClick: () -> Unit,

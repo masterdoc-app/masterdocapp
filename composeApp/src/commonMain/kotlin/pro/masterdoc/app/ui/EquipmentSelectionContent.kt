@@ -23,6 +23,7 @@ import com.arkivanov.mvikotlin.extensions.coroutines.states
 import kotlinx.coroutines.delay
 import pro.masterdoc.app.platform.rememberImagePickerLaunchers
 import pro.masterdoc.app.ui.theme.MasterdocDimens
+import pro.masterdoc.app.ui.theme.MasterdocDetectLoadingOverlay
 import pro.masterdoc.app.ui.theme.MasterdocLoadingIndicator
 import pro.masterdoc.app.ui.theme.MasterdocPhotoSourceDialog
 import pro.masterdoc.app.ui.theme.MasterdocPrimaryButton
@@ -83,6 +84,7 @@ fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
         )
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -102,15 +104,6 @@ fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
             },
             enabled = !state.isLoading && !state.isDetecting,
         )
-
-        if (state.isDetecting) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(MasterdocDimens.Space8),
-                contentAlignment = Alignment.Center,
-            ) {
-                MasterdocLoadingIndicator()
-            }
-        }
 
         state.detectError?.let { error ->
             Text(
@@ -160,6 +153,8 @@ fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
                 )
             }
         }
+    }
+        MasterdocDetectLoadingOverlay(visible = state.isDetecting)
     }
 }
 

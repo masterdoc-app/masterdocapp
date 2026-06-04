@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -551,4 +552,89 @@ fun MasterdocLoadingIndicator(modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.secondary,
         strokeWidth = 2.dp,
     )
+}
+
+/** Full-screen detect progress — lite flare rings + paper card (scan / equipment pick). */
+@Composable
+fun MasterdocDetectLoadingOverlay(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    title: String = "Распознаём станцию…",
+    hint: String = "Обычно 30–90 секунд, иногда дольше",
+) {
+    if (!visible) return
+
+    val ringOuter = 96.dp
+    val ringMid = ringOuter * 0.82f
+    val ringInner = 64.dp
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .testTag(MasterdocTestTags.DETECT_LOADING_OVERLAY)
+            .background(MasterdocLiteTokens.Ink.copy(alpha = 0.4f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.88f)
+                .padding(horizontal = MasterdocDimens.Space24),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MasterdocLiteTokens.FlareBorder),
+            tonalElevation = 0.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = MasterdocDimens.Space24,
+                    vertical = MasterdocDimens.Space24,
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(MasterdocDimens.Space16),
+            ) {
+                Box(
+                    modifier = Modifier.size(ringOuter),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(ringOuter)
+                            .border(
+                                1.5.dp,
+                                MasterdocLiteTokens.FlareBorder.copy(alpha = 0.22f),
+                                CircleShape,
+                            ),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(ringMid)
+                            .border(
+                                1.5.dp,
+                                MasterdocLiteTokens.FlareBorder.copy(alpha = 0.35f),
+                                CircleShape,
+                            ),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(ringInner)
+                            .background(MaterialTheme.colorScheme.secondary, CircleShape)
+                            .border(2.dp, MasterdocLiteTokens.FlareTint, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        MasterdocLoadingIndicator(modifier = Modifier.size(28.dp))
+                    }
+                }
+                MasterdocMonoLabel(
+                    text = title,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.secondary,
+                )
+                Text(
+                    text = hint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
 }

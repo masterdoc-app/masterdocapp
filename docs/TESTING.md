@@ -44,6 +44,7 @@ export MASTERDOC_INTEGRATION=1
 | Класс | Что проверяет |
 |-------|----------------|
 | `LiteAppHeadBackTest` | Кнопка «Назад» в `LiteAppHead` (`MasterdocTestTags.APP_HEAD_BACK`) |
+| `MasterdocDetectLoadingOverlayTest` | Оверлей «Распознаём станцию…» при `isDetecting` (`MasterdocTestTags.DETECT_LOADING_OVERLAY`) |
 
 ## Ручная проверка (Web + камера)
 
@@ -54,7 +55,7 @@ export MASTERDOC_INTEGRATION=1
 # http://127.0.0.1:8088/ — hard refresh, masterdoc-camera.js?v=32+
 ```
 
-Чеклист: «Сканировать» → live preview (не «Открыть файл») → снимок → detect → экран «Описание сбоя».
+Чеклист: «Сканировать» → live preview (не «Открыть файл») → снимок → оверлей «Распознаём станцию…» (до ответа API) → экран «Описание сбоя».
 
 ## Backend (отдельный модуль)
 

@@ -29,6 +29,7 @@ import pro.masterdoc.app.platform.rememberImagePickerLaunchers
 import pro.masterdoc.app.ui.theme.LiteAppHead
 import pro.masterdoc.app.ui.theme.LiteChip
 import pro.masterdoc.app.ui.theme.MasterdocDimens
+import pro.masterdoc.app.ui.theme.MasterdocDetectLoadingOverlay
 import pro.masterdoc.app.ui.theme.MasterdocLoadingIndicator
 import pro.masterdoc.app.ui.theme.MasterdocMonoLabel
 import pro.masterdoc.app.ui.theme.MasterdocSecondaryButton
@@ -101,31 +102,34 @@ fun ScanScreenContent(
         },
     )
 
-    Column(modifier = modifier.fillMaxSize()) {
-        if (showEquipmentList) {
-            EquipmentListPane(
-                state = state,
-                equipmentStore = equipmentStore,
-                onBack = { showEquipmentList = false },
-                onMenuClick = menu.onOpen,
-            )
-        } else {
-            LiteAppHead(
-                title = "Masterdoc",
-                subtitle = "Скан · выбор станции",
-                onMenuClick = menu.onOpen,
-            )
-            ScanMainPane(
-                state = state,
-                cameraError = cameraError,
-                onCameraClick = {
-                    equipmentStore.accept(EquipmentSelectionStore.Intent.ClearDetectError)
-                    cameraError = null
-                    imagePickers.openCamera()
-                },
-                onListClick = { showEquipmentList = true },
-            )
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (showEquipmentList) {
+                EquipmentListPane(
+                    state = state,
+                    equipmentStore = equipmentStore,
+                    onBack = { showEquipmentList = false },
+                    onMenuClick = menu.onOpen,
+                )
+            } else {
+                LiteAppHead(
+                    title = "Masterdoc",
+                    subtitle = "Скан · выбор станции",
+                    onMenuClick = menu.onOpen,
+                )
+                ScanMainPane(
+                    state = state,
+                    cameraError = cameraError,
+                    onCameraClick = {
+                        equipmentStore.accept(EquipmentSelectionStore.Intent.ClearDetectError)
+                        cameraError = null
+                        imagePickers.openCamera()
+                    },
+                    onListClick = { showEquipmentList = true },
+                )
+            }
         }
+        MasterdocDetectLoadingOverlay(visible = state.isDetecting)
     }
 }
 
@@ -151,8 +155,8 @@ private fun ScanMainPane(
         ) {
             ScanCameraHeroButton(
                 onClick = onCameraClick,
-                enabled = !state.isLoading,
-                isLoading = state.isDetecting,
+                enabled = !state.isLoading && !state.isDetecting,
+                isLoading = false,
             )
 
             Spacer(modifier = Modifier.height(MasterdocDimens.Space20))

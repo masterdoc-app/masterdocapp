@@ -10,6 +10,8 @@
 
 **Не считать задачу выполненной**, пока `./gradlew check` не завершился с `BUILD SUCCESSFUL`.
 
+Опционально API на проде (detect, чат): см. [docs/TESTING.md](docs/TESTING.md) — `MASTERDOC_INTEGRATION=1`.
+
 ## CI — обязательно при каждом push и MR
 
 После **каждого push** и перед мержем PR:
@@ -59,3 +61,4 @@ curl -fsS http://api.masterdoc.pro/v1/assistants
 
 - Compose Multiplatform, Decompose, MVIKotlin, Koin, Ktor (REST, без локальной БД в v1)
 - `shared/` — логика и компоненты; `composeApp/` — UI и entry points
+- **Камера / галерея:** [ImagePickerKMP](https://github.com/ismoy/ImagePickerKMP) `1.0.34` на Android, iOS, Desktop; на **Wasm** — `masterdoc-camera.js` (см. [docs/IMAGE_PICKER.md](docs/IMAGE_PICKER.md))

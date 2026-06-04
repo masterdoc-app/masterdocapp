@@ -145,10 +145,35 @@
         #masterdoc-camera-file-input {
             display: none;
         }
+        /* HTML hit target above Skiko canvas — must receive the real tap for getUserMedia. */
+        #masterdoc-scan-shutter {
+            display: none;
+            position: fixed;
+            z-index: 2147483646;
+            left: 50%;
+            top: 42%;
+            transform: translate(-50%, -50%);
+            width: min(180px, 52vw);
+            height: min(180px, 52vw);
+            margin: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            background: transparent;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #masterdoc-scan-shutter:not([hidden]) {
+            display: block;
+        }
+        body.masterdoc-camera-open #masterdoc-scan-shutter {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 <div id="masterdoc-compose-root"></div>
+<button id="masterdoc-scan-shutter" type="button" hidden aria-label="Сканировать камерой"></button>
 <script>
     window.__masterdocLastKotlinError = null;
     window.addEventListener("error", function (event) {
@@ -164,7 +189,7 @@
     });
 </script>
 <script src="masterdoc-image.js?v=1"></script>
-<script src="masterdoc-camera.js?v=28"></script>
+<script src="masterdoc-camera.js?v=32"></script>
 <script src="composeApp.js?v=26"></script>
 <script>
     // composeApp.js is an async webpack bundle; globalThis.composeApp is a Promise.

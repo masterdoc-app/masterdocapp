@@ -9,8 +9,8 @@ import kotlinx.serialization.json.Json
 class HttpClientFactory {
     fun create(): HttpClient = HttpClient {
         install(HttpTimeout) {
-            requestTimeoutMillis = 180_000
-            socketTimeoutMillis = 180_000
+            requestTimeoutMillis = 300_000
+            socketTimeoutMillis = 300_000
         }
         install(ContentNegotiation) {
             json(

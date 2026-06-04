@@ -22,7 +22,7 @@ Masterdoc App помогает разобраться с повседневны�
 | Desktop | Windows, macOS, Linux |
 | Web | Браузер |
 
-**Kotlin Multiplatform** + **Compose Multiplatform**, **Decompose**, **MVIKotlin**, **Koin**, **Ktor** (REST).
+**Kotlin Multiplatform** + **Compose Multiplatform**, **Decompose**, **MVIKotlin**, **Koin**, **Ktor** (REST), **[ImagePickerKMP](https://github.com/ismoy/ImagePickerKMP)** (камера/галерея на native; Wasm — см. [docs/IMAGE_PICKER.md](docs/IMAGE_PICKER.md)).
 
 Структура: `shared/` (логика), `composeApp/` (UI), `iosApp/` (оболочка Xcode).
 

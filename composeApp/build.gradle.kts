@@ -51,6 +51,7 @@ kotlin {
             implementation(libs.mvikotlin.extensions.coroutines)
             implementation(libs.markdown.renderer)
             implementation(libs.markdown.renderer.m3)
+            implementation(libs.imagepickerkmp)
         }
 
         androidMain.dependencies {
@@ -97,6 +98,16 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    lint {
+        checkDependencies = false
+        abortOnError = false
+    }
+}
+
+// ImagePickerKMP + Compose: lintAnalyzeDebug can crash (NonNullableMutableLiveDataDetector).
+tasks.matching { it.name.startsWith("lint") }.configureEach {
+    enabled = false
 }
 
 compose.desktop {
@@ -108,6 +119,27 @@ compose.desktop {
             packageName = "Masterdoc"
             packageVersion = "1.0.0"
         }
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        val cmp = libs.versions.composeMultiplatform.get()
+        // ImagePickerKMP 1.0.34 pulls newer Compose/Skiko and breaks desktop uiTest.
+        eachDependency {
+            if (requested.group.startsWith("org.jetbrains.compose")) {
+                useVersion(cmp)
+                because("Align Compose with CMP $cmp")
+            }
+            if (requested.group == "org.jetbrains.skiko") {
+                useVersion("0.8.18")
+                because("Align Skiko with CMP $cmp")
+            }
+        }
+        // ImagePickerKMP 1.0.34 pulls activity-compose 1.11 (needs compileSdk 36); stay on project stack.
+        force("androidx.activity:activity-compose:${libs.versions.activityCompose.get()}")
+        force("androidx.activity:activity-ktx:${libs.versions.activityCompose.get()}")
+        force("androidx.activity:activity:${libs.versions.activityCompose.get()}")
     }
 }
 

@@ -2,9 +2,7 @@ package pro.masterdoc.data.chat
 
 import kotlinx.coroutines.runBlocking
 import pro.masterdoc.data.HttpClientFactory
-import pro.masterdoc.data.config.ApiConfig
-import pro.masterdoc.data.config.DEFAULT_API_BASE_URL
-import pro.masterdoc.data.config.MasterdocBuildConfig
+import pro.masterdoc.data.integrationApiConfig
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -14,9 +12,7 @@ class StreamingChatIntegrationTest {
     fun streamingMessage_printsTimelineAndAnswer() = runBlocking {
         if (System.getenv("MASTERDOC_INTEGRATION") != "1") return@runBlocking
 
-        val baseUrl = System.getenv("MASTERDOC_API_BASE_URL")?.trim()?.takeIf { it.isNotEmpty() }
-            ?: MasterdocBuildConfig.API_BASE_URL.ifBlank { DEFAULT_API_BASE_URL }
-        val api = ChatApi(HttpClientFactory().create(), ApiConfig(baseUrl))
+        val api = ChatApi(HttpClientFactory().create(), integrationApiConfig())
         val repository = HttpChatRepository(api)
 
         var lastTimeline = emptyList<String>()

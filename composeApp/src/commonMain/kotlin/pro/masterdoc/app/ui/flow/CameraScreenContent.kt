@@ -44,7 +44,7 @@ fun CameraScreenContent(
     )
 
     LaunchedEffect(openAttempt) {
-        imagePickers.openCamera()
+        imagePickers.openLiveCamera()
     }
 
     Box(

@@ -23,9 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import com.arkivanov.mvikotlin.extensions.coroutines.states
+import pro.masterdoc.app.platform.ScanCameraHeroButton
+import pro.masterdoc.app.platform.ScanScreenCameraBindings
 import pro.masterdoc.app.platform.rememberImagePickerLaunchers
 import pro.masterdoc.app.ui.theme.LiteAppHead
-import pro.masterdoc.app.ui.theme.LiteCameraHeroButton
 import pro.masterdoc.app.ui.theme.LiteChip
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocLoadingIndicator
@@ -80,6 +81,26 @@ fun ScanScreenContent(
 
     LiteFlowDropdownMenu(menu)
 
+    ScanScreenCameraBindings(
+        launchers = imagePickers,
+        active = !showEquipmentList,
+        onResult = { picked ->
+            if (picked == null || picked.bytes.isEmpty()) return@ScanScreenCameraBindings
+            cameraError = null
+            equipmentStore.accept(
+                EquipmentSelectionStore.Intent.DetectFromPhoto(
+                    imageBytes = picked.bytes,
+                    fileName = picked.fileName,
+                    contentType = picked.contentType,
+                ),
+            )
+        },
+        onCameraError = { message ->
+            if (message == "cancelled") return@ScanScreenCameraBindings
+            cameraError = message
+        },
+    )
+
     Column(modifier = modifier.fillMaxSize()) {
         if (showEquipmentList) {
             EquipmentListPane(
@@ -128,7 +149,7 @@ private fun ScanMainPane(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            LiteCameraHeroButton(
+            ScanCameraHeroButton(
                 onClick = onCameraClick,
                 enabled = !state.isLoading,
                 isLoading = state.isDetecting,

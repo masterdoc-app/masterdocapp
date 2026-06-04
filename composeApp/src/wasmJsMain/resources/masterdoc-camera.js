@@ -17,12 +17,12 @@
                 '</div>';
             document.body.appendChild(overlay);
         }
-        ensureCameraFileInput();
     }
 
+    /** Real phones only — UA "Mobile" matches desktop Chrome too and triggers file picker. */
     function isMobileCaptureDevice() {
         var ua = navigator.userAgent || "";
-        return /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+        return /Android/i.test(ua) || /iPhone|iPad|iPod/i.test(ua);
     }
 
     function isLocalDevHost() {
@@ -62,50 +62,23 @@
         return error.name ? (error.name + (error.message ? ": " + error.message : "")) : String(error);
     }
 
-    function ensureCameraFileInput() {
-        var input = document.getElementById("masterdoc-camera-file-input");
-        if (!input) {
-            input = document.createElement("input");
-            input.id = "masterdoc-camera-file-input";
-            input.type = "file";
-            input.accept = "image/*";
-            input.setAttribute("capture", "environment");
-            input.style.display = "none";
-            document.body.appendChild(input);
-        }
-        return input;
-    }
-
-    function openNativeCameraFallback(onSuccess, onError) {
-        var input = ensureCameraFileInput();
-        input.value = "";
-        input.onchange = function() {
-            var file = input.files && input.files[0];
-            input.onchange = null;
-            if (!file) {
-                onError("cancelled");
-                return;
-            }
-            file.arrayBuffer().then(function(buffer) {
-                onSuccess(buffer);
-            }).catch(function(err) {
-                onError(formatCameraError(err));
-            });
-        };
-        input.click();
-    }
-
     function tryGetUserMedia(constraints) {
         return navigator.mediaDevices.getUserMedia(constraints);
     }
 
     function requestCameraStream() {
-        var attempts = [
-            { video: { facingMode: { ideal: "environment" } }, audio: false },
-            { video: { facingMode: "environment" }, audio: false },
-            { video: { facingMode: "user" }, audio: false },
-            { video: true, audio: false }
-        ];
+        var attempts = isMobileCaptureDevice()
+            ? [
+                { video: { facingMode: { ideal: "environment" } }, audio: false },
+                { video: { facingMode: "environment" }, audio: false },
+                { video: { facingMode: "user" }, audio: false },
+                { video: true, audio: false }
+            ]
+            : [
+                { video: { width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false },
+                { video: { facingMode: "user" }, audio: false },
+                { video: true, audio: false }
+            ];
         var lastError = null;
         function tryAt(index) {
             if (index >= attempts.length) {
@@ -151,20 +124,12 @@
         }
 
         if (!window.isSecureContext) {
-            if (isMobileCaptureDevice()) {
-                openNativeCameraFallback(onSuccess, onError);
-            } else {
-                onError("insecure-context");
-            }
+            onError("insecure-context");
             return;
         }
 
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            if (isMobileCaptureDevice()) {
-                openNativeCameraFallback(onSuccess, onError);
-            } else {
-                onError("mediaDevices unavailable");
-            }
+            onError("mediaDevices unavailable");
             return;
         }
 
@@ -196,14 +161,22 @@
         }
 
         function failWith(error) {
-            cleanup();
-            activeSession = null;
             var message = formatCameraError(error);
             console.warn("[masterdoc camera]", message);
             if (isLocalDevHost() && deliverDevTestPhoto(onSuccess)) {
+                cleanup();
+                activeSession = null;
                 return;
             }
-            openNativeCameraFallback(onSuccess, onError);
+            var status = document.getElementById("masterdoc-camera-status");
+            overlay.classList.add("active");
+            overlay.classList.remove("waiting");
+            if (status) {
+                status.textContent = message;
+                status.style.display = "flex";
+            }
+            captureButton.disabled = true;
+            captureButton.classList.remove("ready");
         }
 
         function captureFrame() {
@@ -289,4 +262,61 @@
             onError("cancelled");
         };
     };
+
+    var scanCameraCallbacks = null;
+
+    function initScanShutterButton() {
+        var btn = document.getElementById("masterdoc-scan-shutter");
+        if (!btn || btn.dataset.masterdocBound === "1") {
+            return;
+        }
+        btn.dataset.masterdocBound = "1";
+        btn.addEventListener("click", function(event) {
+            if (!scanCameraCallbacks) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            console.info("[masterdoc camera] scan shutter click → getUserMedia");
+            window.masterdocCaptureCamera(
+                scanCameraCallbacks.onSuccess,
+                scanCameraCallbacks.onError
+            );
+        }, true);
+    }
+
+    window.masterdocActivateScanCamera = function(onSuccess, onError) {
+        scanCameraCallbacks = { onSuccess: onSuccess, onError: onError };
+        initScanShutterButton();
+        var btn = document.getElementById("masterdoc-scan-shutter");
+        if (btn) {
+            btn.hidden = false;
+        }
+    };
+
+    window.masterdocDeactivateScanCamera = function() {
+        scanCameraCallbacks = null;
+        var btn = document.getElementById("masterdoc-scan-shutter");
+        if (btn) {
+            btn.hidden = true;
+        }
+    };
+
+    /**
+     * Opens live camera while scan screen bindings are active.
+     * Call synchronously from the user tap handler (Compose onClick).
+     */
+    window.masterdocOpenScanCamera = function() {
+        if (!scanCameraCallbacks) {
+            return false;
+        }
+        console.info("[masterdoc camera] open scan camera → getUserMedia");
+        window.masterdocCaptureCamera(
+            scanCameraCallbacks.onSuccess,
+            scanCameraCallbacks.onError
+        );
+        return true;
+    };
+
+    initScanShutterButton();
 })();

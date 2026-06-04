@@ -43,6 +43,7 @@ import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocLoadingIndicator
 import pro.masterdoc.app.ui.theme.MasterdocMessageSurface
 import pro.masterdoc.app.ui.theme.LiteFieldShape
+import pro.masterdoc.app.ui.theme.masterdocChatInputFieldColors
 import pro.masterdoc.app.ui.theme.UserMessageShape
 import pro.masterdoc.domain.chat.ChatMessageStatus
 import pro.masterdoc.domain.chat.ChatRole
@@ -253,7 +254,7 @@ private fun ChatInputBar(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        color = MaterialTheme.colorScheme.background,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
@@ -284,12 +285,7 @@ private fun ChatInputBar(
                 maxLines = 4,
                 enabled = !isSending,
                 shape = LiteFieldShape,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.outline,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                ),
+                colors = masterdocChatInputFieldColors(),
             )
             Button(
                 onClick = onSend,

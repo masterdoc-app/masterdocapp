@@ -27,6 +27,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -53,6 +54,18 @@ fun Modifier.masterdocConvoBackground(): Modifier {
     val bottom = MaterialTheme.colorScheme.surfaceVariant
     return background(Brush.verticalGradient(listOf(top, bottom)))
 }
+
+/** Поле ввода сообщения — тот же Paper, что и [MaterialTheme.colorScheme.background]. */
+@Composable
+fun masterdocChatInputFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = MaterialTheme.colorScheme.background,
+    unfocusedContainerColor = MaterialTheme.colorScheme.background,
+    disabledContainerColor = MaterialTheme.colorScheme.background,
+    errorContainerColor = MaterialTheme.colorScheme.background,
+    focusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+    disabledBorderColor = MaterialTheme.colorScheme.outlineVariant,
+)
 
 @Composable
 fun MasterdocScreenTitle(

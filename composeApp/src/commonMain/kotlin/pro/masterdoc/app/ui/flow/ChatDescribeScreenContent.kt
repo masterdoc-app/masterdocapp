@@ -1,5 +1,6 @@
 package pro.masterdoc.app.ui.flow
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import com.arkivanov.mvikotlin.extensions.coroutines.states
 import pro.masterdoc.app.ui.chat.masterdocChatInputKeys
 import pro.masterdoc.app.ui.theme.LiteAppHead
+import pro.masterdoc.app.ui.theme.masterdocChatInputFieldColors
 import pro.masterdoc.app.ui.theme.LiteFieldShape
 import pro.masterdoc.app.ui.theme.LiteListenPanel
 import pro.masterdoc.app.ui.theme.MasterdocDimens
@@ -47,6 +48,7 @@ fun ChatDescribeScreenContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .imePadding(),
     ) {
         LiteAppHead(
@@ -79,10 +81,7 @@ fun ChatDescribeScreenContent(
                 minLines = 2,
                 maxLines = 4,
                 shape = LiteFieldShape,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                ),
+                colors = masterdocChatInputFieldColors(),
             )
             MasterdocPrimaryButton(
                 text = if (chatState.isSending) "Отправляем…" else "Отправить",
@@ -111,6 +110,7 @@ fun ChatDescribeScreenContent(
                 .fillMaxWidth()
                 .padding(horizontal = MasterdocDimens.Space14),
             fillMaxWidth = true,
+            enabled = !(textMode && chatState.isSending),
         )
 
         if (canFinishCase) {

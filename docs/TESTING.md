@@ -70,6 +70,11 @@ MASTERDOC_WEB_SKIP_BUILD=1 ./scripts/run-web.sh
 
 ## CI (GitHub Actions)
 
-См. `.github/workflows/ci.yml` — сборка Android, Desktop, Wasm, iOS. **Без** `MASTERDOC_INTEGRATION` (без сетевых integration-тестов).
+См. `.github/workflows/ci.yml`:
+
+- **job `test`** — `:shared:jvmTest`, `:composeApp:desktopTest`, компиляция Wasm (без `MASTERDOC_INTEGRATION`);
+- остальные jobs — сборка Android, Desktop, Wasm, iOS.
+
+Integration-тесты API в CI **не** запускаются (только локально с `MASTERDOC_INTEGRATION=1`).
 
 В [COPILOT_SPEC.md](COPILOT_SPEC.md) упомянуты integration tests чата — тот же флаг `MASTERDOC_INTEGRATION=1`.

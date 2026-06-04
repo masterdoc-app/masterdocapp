@@ -5,7 +5,7 @@ import pro.masterdoc.domain.case.PaginatedCaseReports
 
 interface CaseReportsRepository {
     suspend fun submit(request: CaseReportSubmitRequest): Result<Unit>
-    suspend fun list(page: Int, size: Int, assistantId: Int?): Result<PaginatedCaseReports>
+    suspend fun list(assistantId: Int, page: Int, size: Int): Result<PaginatedCaseReports>
 }
 
 class HttpCaseReportsRepository(
@@ -14,8 +14,8 @@ class HttpCaseReportsRepository(
     override suspend fun submit(request: CaseReportSubmitRequest): Result<Unit> =
         runCatching { api.createReport(request) }.map { }
 
-    override suspend fun list(page: Int, size: Int, assistantId: Int?): Result<PaginatedCaseReports> =
-        runCatching { api.listReports(page = page, size = size, assistantId = assistantId) }
+    override suspend fun list(assistantId: Int, page: Int, size: Int): Result<PaginatedCaseReports> =
+        runCatching { api.listReports(assistantId = assistantId, page = page, size = size) }
 }
 
 class LoggingCaseReportsRepository : CaseReportsRepository {
@@ -27,7 +27,7 @@ class LoggingCaseReportsRepository : CaseReportsRepository {
         return Result.success(Unit)
     }
 
-    override suspend fun list(page: Int, size: Int, assistantId: Int?): Result<PaginatedCaseReports> =
+    override suspend fun list(assistantId: Int, page: Int, size: Int): Result<PaginatedCaseReports> =
         Result.success(
             PaginatedCaseReports(items = emptyList(), page = page, size = size, total = 0, hasMore = false),
         )

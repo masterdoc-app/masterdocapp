@@ -33,14 +33,14 @@ class CaseReportsApi(
     }
 
     suspend fun listReports(
+        assistantId: Int,
         page: Int = 0,
         size: Int = 20,
-        assistantId: Int? = null,
     ): PaginatedCaseReports =
         httpClient.get("${apiConfig.baseUrl}/report") {
+            parameter("assistant_id", assistantId)
             parameter("page", page)
             parameter("size", size)
-            assistantId?.let { parameter("assistant_id", it) }
         }.body<PaginatedCaseReportsResponseDto>().toDomain()
 }
 

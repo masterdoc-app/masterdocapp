@@ -25,4 +25,6 @@ data class PickedImage(
 class ImagePickerLaunchers(
     val openGallery: () -> Unit,
     val openCamera: () -> Unit,
+    /** Fullscreen live preview (web JS overlay). Defaults to [openCamera] on non-web targets. */
+    val openLiveCamera: () -> Unit = openCamera,
 )

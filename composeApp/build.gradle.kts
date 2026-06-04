@@ -64,6 +64,14 @@ kotlin {
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
         }
+
+        val desktopTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+                implementation(compose.desktop.uiTestJUnit4)
+            }
+        }
     }
 }
 

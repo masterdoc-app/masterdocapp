@@ -16,35 +16,44 @@ import org.w3c.files.get
 import kotlin.js.JsAny
 import kotlin.js.JsName
 
+/**
+ * Web camera via hidden file input + [capture] (system picker / native camera UI).
+ * Live [masterdocCaptureCamera] overlay is opt-in via [ImagePickerLaunchers.openLiveCamera].
+ */
 @Composable
 actual fun rememberImagePickerLaunchers(
     onResult: (PickedImage?) -> Unit,
     onCameraError: (String) -> Unit,
 ): ImagePickerLaunchers {
     val onResultState = rememberUpdatedState(onResult)
-    val onErrorState = rememberUpdatedState(onCameraError)
     val galleryInput = remember {
-        createGalleryFileInput { onResultState.value(it) }
+        createFileInput(source = PhotoInputSource.Gallery) { onResultState.value(it) }
+    }
+    val cameraInput = remember {
+        createFileInput(source = PhotoInputSource.Camera) { onResultState.value(it) }
     }
 
     DisposableEffect(Unit) {
         onDispose {
             galleryInput.remove()
+            cameraInput.remove()
         }
     }
 
     return ImagePickerLaunchers(
         openGallery = { galleryInput.click() },
-        openCamera = {
+        openCamera = { cameraInput.click() },
+        openLiveCamera = {
             masterdocCaptureCamera(
                 onSuccess = { data -> handleCameraPayload(data, onResultState.value) },
                 onError = { error ->
                     val message = error.toString()
-                    if (message != "cancelled") {
-                        println("[masterdoc detect] wasm camera failed: $message")
-                        onErrorState.value(cameraErrorMessage(message))
+                    if (message == "cancelled") {
+                        onResultState.value(null)
+                    } else {
+                        println("[masterdoc detect] wasm live camera failed: $message, falling back to file picker")
+                        cameraInput.click()
                     }
-                    onResultState.value(null)
                 },
             )
         },
@@ -57,12 +66,56 @@ private external fun masterdocCaptureCamera(
     onError: (JsAny) -> Unit,
 )
 
+private enum class PhotoInputSource {
+    Gallery,
+    Camera,
+}
+
+private fun createFileInput(
+    source: PhotoInputSource,
+    onResult: (PickedImage?) -> Unit,
+): HTMLInputElement {
+    val input = document.createElement("input") as HTMLInputElement
+    input.type = "file"
+    input.style.display = "none"
+    when (source) {
+        PhotoInputSource.Gallery -> {
+            input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/gif"
+            input.removeAttribute("capture")
+        }
+        PhotoInputSource.Camera -> {
+            input.accept = "image/*"
+            input.setAttribute("capture", "environment")
+        }
+    }
+    input.onchange = {
+        val file = input.files?.item(0)
+        input.value = ""
+        if (file == null) {
+            onResult(null)
+        } else {
+            file.readBytes { bytes ->
+                deliverPickedFile(
+                    bytes = bytes,
+                    fileName = file.name,
+                    contentTypeRaw = file.type,
+                    defaultFileName = if (source == PhotoInputSource.Camera) "camera.jpg" else "photo.jpg",
+                    onResult = onResult,
+                )
+            }
+        }
+    }
+    document.body?.appendChild(input)
+    return input
+}
+
 private fun handleCameraPayload(data: JsAny, onResult: (PickedImage?) -> Unit) {
     val bytes = jsPayloadToByteArray(data)
     deliverPickedFile(
         bytes = bytes,
         fileName = "camera.jpg",
         contentTypeRaw = "image/jpeg",
+        defaultFileName = "camera.jpg",
         onResult = onResult,
     )
 }
@@ -80,53 +133,11 @@ private fun arrayBufferToByteArray(buffer: ArrayBuffer): ByteArray {
     return ByteArray(view.length) { index -> view[index] }
 }
 
-private fun cameraErrorMessage(raw: String): String = when {
-    raw.contains("Permission", ignoreCase = true) ||
-        raw.contains("NotAllowed", ignoreCase = true) ->
-        "Нет доступа к камере. Разрешите камеру в браузере или выберите станцию из списка."
-    raw.contains("NotFound", ignoreCase = true) ||
-        raw.contains("DevicesNotFound", ignoreCase = true) ->
-        "Камера не найдена. Используйте список оборудования."
-    raw.contains("NotReadable", ignoreCase = true) ->
-        "Камера занята другим приложением или недоступна. Закройте другие вкладки с камерой и попробуйте снова."
-    raw.contains("insecure-context", ignoreCase = true) ->
-        "Камера в браузере доступна только по HTTPS. Откройте приложение по защищённому адресу."
-    raw.contains("mediaDevices unavailable", ignoreCase = true) ->
-        "Браузер не поддерживает камеру. Используйте Chrome или Safari."
-    raw.contains("not ready", ignoreCase = true) ||
-        raw.contains("empty photo", ignoreCase = true) ||
-        raw.contains("preview timeout", ignoreCase = true) ->
-        "Не удалось снять кадр. Дождитесь превью и нажмите «Снять» ещё раз."
-    else -> "Камера недоступна: $raw"
-}
-
-private fun createGalleryFileInput(
-    onResult: (PickedImage?) -> Unit,
-): HTMLInputElement {
-    val input = document.createElement("input") as HTMLInputElement
-    input.type = "file"
-    input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/gif"
-    input.removeAttribute("capture")
-    input.style.display = "none"
-    input.onchange = {
-        val file = input.files?.item(0)
-        input.value = ""
-        if (file == null) {
-            onResult(null)
-        } else {
-            file.readBytes { bytes ->
-                deliverPickedFile(bytes, file.name, file.type, onResult)
-            }
-        }
-    }
-    document.body?.appendChild(input)
-    return input
-}
-
 private fun deliverPickedFile(
     bytes: ByteArray,
     fileName: String,
     contentTypeRaw: String,
+    defaultFileName: String,
     onResult: (PickedImage?) -> Unit,
 ) {
     if (bytes.isEmpty()) {
@@ -135,7 +146,13 @@ private fun deliverPickedFile(
     }
     val contentType = contentTypeRaw.ifBlank { guessContentType(fileName) }
     println("[masterdoc detect] wasm picked ${bytes.size} bytes from $fileName")
-    onResult(PickedImage(bytes, fileName.ifBlank { "photo.jpg" }, contentType))
+    onResult(
+        PickedImage(
+            bytes = bytes,
+            fileName = fileName.ifBlank { defaultFileName },
+            contentType = contentType,
+        ),
+    )
 }
 
 private fun File.readBytes(onReady: (ByteArray) -> Unit) {

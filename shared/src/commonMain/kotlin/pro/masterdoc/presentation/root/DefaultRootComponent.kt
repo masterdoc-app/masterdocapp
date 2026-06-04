@@ -111,7 +111,9 @@ class DefaultRootComponent(
     }
 
     override fun onBack() {
-        navigation.pop()
+        if (stack.value.backStack.isNotEmpty()) {
+            navigation.pop()
+        }
     }
 
     @OptIn(DelicateDecomposeApi::class)

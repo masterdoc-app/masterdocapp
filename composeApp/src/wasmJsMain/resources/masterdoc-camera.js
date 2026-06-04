@@ -203,11 +203,7 @@
             if (isLocalDevHost() && deliverDevTestPhoto(onSuccess)) {
                 return;
             }
-            if (isMobileCaptureDevice()) {
-                openNativeCameraFallback(onSuccess, onError);
-            } else {
-                onError(message);
-            }
+            openNativeCameraFallback(onSuccess, onError);
         }
 
         function captureFrame() {

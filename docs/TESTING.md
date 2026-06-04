@@ -66,8 +66,6 @@ export MASTERDOC_E2E_SERVER_LOG_CMD='ssh root@YOUR_HOST journalctl -u masterdoc-
 | `MockChatRepositoryTest` | Mock-репозиторий чата |
 | `OnyxStreamAccumulatorTest` | Парсинг NDJSON/SSE стрима |
 | `DefaultRootComponentBackTest` | `onBack()` / стек: Scan ↔ Describe ↔ Summary, Camera cancel |
-| `FlowNavigationRestoreTest` | «Рефреш» Web: `sessionStorage` → тот же экран (Camera, Chat, Summary, FrequentIssues, Scan) |
-| `FlowNavigationSnapshotTest` | Валидация snapshot без станции → откат на Scan |
 
 ## UI-тесты (Desktop)
 
@@ -87,18 +85,6 @@ export MASTERDOC_E2E_SERVER_LOG_CMD='ssh root@YOUR_HOST journalctl -u masterdoc-
 ```
 
 Файлы: `frequent_issues_empty.png`, `frequent_issues_list.png`.
-
-## Сохранение экрана при refresh (Web)
-
-Стек навигации и выбранная станция пишутся в `sessionStorage` (`masterdoc.flow.v1`). После F5 открывается тот же экран (кроме локального оверлея «Список оборудования» на Scan).
-
-Автотесты (JVM, in-memory вместо `sessionStorage`):
-
-```bash
-./gradlew :shared:jvmTest --tests FlowNavigationRestoreTest
-```
-
-Ручная проверка в браузере: выберите станцию → перейдите в чат / итог / частые неисправности / камеру → F5 → тот же экран.
 
 ## Ручная проверка (Web + камера)
 

@@ -101,7 +101,6 @@ kotlin {
 
         wasmJsMain.dependencies {
             implementation(libs.ktor.client.js)
-            implementation("org.jetbrains.kotlinx:kotlinx-browser:0.3")
         }
 
         jvmTest.dependencies {

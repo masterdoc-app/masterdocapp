@@ -9,7 +9,6 @@ import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.popTo
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.lifecycle.doOnDestroy
 import pro.masterdoc.domain.chat.toTranscriptTurns
 import pro.masterdoc.presentation.chat.ChatComponent
 import pro.masterdoc.presentation.chat.ChatStore
@@ -25,16 +24,14 @@ class DefaultRootComponent(
     chatFactory: (ComponentContext) -> ChatComponent,
     private val summaryStoreFactory: SummaryStoreFactory,
     private val reportListStoreFactory: ReportListStoreFactory,
-    private val flowNavigationPersistence: FlowNavigationPersistence = platformFlowNavigationPersistence(),
 ) : RootComponent, ComponentContext by componentContext {
 
     private val navigation = StackNavigation<FlowConfig>()
-    private val restoredSnapshot = flowNavigationPersistence.read()
 
     override val stack: Value<ChildStack<FlowConfig, FlowChild>> =
         childStack(
             source = navigation,
-            initialStack = { restoredSnapshot?.sanitizedStack() ?: listOf(FlowConfig.Scan) },
+            initialStack = { listOf(FlowConfig.Scan) },
             saveStack = { null },
             restoreStack = { null },
             handleBackButton = true,
@@ -51,12 +48,6 @@ class DefaultRootComponent(
     override val chat: ChatComponent by lazy { chatFactory(this) }
     override val summary: SummaryStore by lazy { summaryStoreFactory.create() }
     override val reportList: ReportListStore by lazy { reportListStoreFactory.create() }
-
-    init {
-        restoreStoresFromSnapshot(restoredSnapshot)
-        val cancel = stack.subscribe { persistNavigationStack(it) }
-        lifecycle.doOnDestroy { cancel.cancel() }
-    }
 
     @OptIn(DelicateDecomposeApi::class)
     override fun onEquipmentReady() {
@@ -126,45 +117,11 @@ class DefaultRootComponent(
     override fun onFinishAndRestart() {
         onResetSession()
         navigation.popTo(0)
-        flowNavigationPersistence.clear()
     }
 
     override fun onResetSession() {
         chat.store.accept(ChatStore.Intent.ResetSession)
         chat.equipmentStore.accept(EquipmentSelectionStore.Intent.ClearSelection)
         summary.accept(SummaryStore.Intent.Reset)
-    }
-
-    private fun restoreStoresFromSnapshot(snapshot: FlowNavigationSnapshot?) {
-        val assistant = snapshot?.selectedAssistant() ?: return
-        chat.equipmentStore.accept(EquipmentSelectionStore.Intent.Select(assistant))
-        when (stack.value.active.configuration) {
-            FlowConfig.ChatDescribe -> {
-                chat.store.accept(ChatStore.Intent.BindAssistant(assistant.id, assistant.name))
-            }
-            FlowConfig.Summary -> {
-                chat.store.accept(ChatStore.Intent.BindAssistant(assistant.id, assistant.name))
-                prefillSummaryFromSession()
-            }
-            FlowConfig.FrequentIssues -> {
-                reportList.accept(ReportListIntent.BindAssistant(assistant.id, assistant.name))
-                reportList.accept(ReportListIntent.Load)
-            }
-            FlowConfig.Scan,
-            FlowConfig.Camera,
-            -> Unit
-        }
-    }
-
-    private fun persistNavigationStack(childStack: ChildStack<FlowConfig, FlowChild>) {
-        val configurations = childStack.items.map { it.configuration }
-        val selected = chat.equipmentStore.state.selectedAssistant
-        flowNavigationPersistence.write(
-            FlowNavigationSnapshot(
-                stack = configurations,
-                assistantId = selected?.id,
-                assistantName = selected?.name,
-            ),
-        )
     }
 }

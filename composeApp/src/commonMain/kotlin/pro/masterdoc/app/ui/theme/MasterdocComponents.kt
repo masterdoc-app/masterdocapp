@@ -573,7 +573,7 @@ fun MasterdocDetectLoadingOverlay(
     visible: Boolean,
     modifier: Modifier = Modifier,
     title: String = "Распознаём станцию…",
-    hint: String = "Обычно 30–90 секунд, иногда дольше",
+    hint: String = "",
 ) {
     if (!visible) return
 

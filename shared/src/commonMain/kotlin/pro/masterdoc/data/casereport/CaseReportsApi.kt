@@ -23,7 +23,7 @@ class CaseReportsApi(
     private val apiConfig: ApiConfig,
 ) {
     suspend fun createReport(request: CaseReportSubmitRequest): CaseReport {
-        val response = httpClient.post("${apiConfig.baseUrl}/case-reports") {
+        val response = httpClient.post("${apiConfig.baseUrl}/report") {
             setBody(request.toDto())
         }
         if (!response.status.isSuccess()) {
@@ -37,7 +37,7 @@ class CaseReportsApi(
         size: Int = 20,
         assistantId: Int? = null,
     ): PaginatedCaseReports =
-        httpClient.get("${apiConfig.baseUrl}/case-reports") {
+        httpClient.get("${apiConfig.baseUrl}/report") {
             parameter("page", page)
             parameter("size", size)
             assistantId?.let { parameter("assistant_id", it) }

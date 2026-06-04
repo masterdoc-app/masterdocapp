@@ -2,6 +2,7 @@ package pro.masterdoc.data.assistant
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
@@ -9,6 +10,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.isSuccess
 import pro.masterdoc.data.assistant.dto.AssistantDto
 import pro.masterdoc.data.assistant.dto.DetectAssistantResponse
 import pro.masterdoc.data.config.ApiConfig
@@ -47,6 +49,10 @@ class AssistantsApi(
                     },
                 ),
             )
+        }
+        if (!response.status.isSuccess()) {
+            val detail = response.bodyAsText().take(300).ifBlank { "нет текста ошибки" }
+            error("Сервер ${response.status.value}: $detail")
         }
         val name = response.body<DetectAssistantResponse>().assistant
         println("[masterdoc detect] response assistant=$name")

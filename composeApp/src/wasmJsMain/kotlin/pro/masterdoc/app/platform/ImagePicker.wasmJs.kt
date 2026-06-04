@@ -66,6 +66,12 @@ private external fun masterdocCaptureCamera(
     onError: (JsAny) -> Unit,
 )
 
+@JsName("masterdocReadImageFile")
+private external fun masterdocReadImageFile(
+    file: File,
+    onReady: (JsAny?) -> Unit,
+)
+
 private enum class PhotoInputSource {
     Gallery,
     Camera,
@@ -94,12 +100,14 @@ private fun createFileInput(
         if (file == null) {
             onResult(null)
         } else {
-            file.readBytes { bytes ->
+            val defaultFileName = if (source == PhotoInputSource.Camera) "camera.jpg" else "photo.jpg"
+            masterdocReadImageFile(file) { data ->
+                val bytes = if (data == null) ByteArray(0) else jsPayloadToByteArray(data)
                 deliverPickedFile(
                     bytes = bytes,
                     fileName = file.name,
                     contentTypeRaw = file.type,
-                    defaultFileName = if (source == PhotoInputSource.Camera) "camera.jpg" else "photo.jpg",
+                    defaultFileName = defaultFileName,
                     onResult = onResult,
                 )
             }
@@ -110,15 +118,23 @@ private fun createFileInput(
 }
 
 private fun handleCameraPayload(data: JsAny, onResult: (PickedImage?) -> Unit) {
-    val bytes = jsPayloadToByteArray(data)
-    deliverPickedFile(
-        bytes = bytes,
-        fileName = "camera.jpg",
-        contentTypeRaw = "image/jpeg",
-        defaultFileName = "camera.jpg",
-        onResult = onResult,
-    )
+    masterdocCompressDetectImage(data) { compressed ->
+        val bytes = if (compressed == null) ByteArray(0) else jsPayloadToByteArray(compressed)
+        deliverPickedFile(
+            bytes = bytes,
+            fileName = "camera.jpg",
+            contentTypeRaw = "image/jpeg",
+            defaultFileName = "camera.jpg",
+            onResult = onResult,
+        )
+    }
 }
+
+@JsName("masterdocCompressDetectImage")
+private external fun masterdocCompressDetectImage(
+    input: JsAny,
+    onReady: (JsAny?) -> Unit,
+)
 
 private fun jsPayloadToByteArray(data: JsAny): ByteArray = when (data) {
     is ArrayBuffer -> arrayBufferToByteArray(data)
@@ -144,32 +160,22 @@ private fun deliverPickedFile(
         onResult(null)
         return
     }
+    val resolvedName = fileName.ifBlank { defaultFileName }
+    println("[masterdoc detect] wasm ready ${bytes.size} bytes from $resolvedName")
     val contentType = contentTypeRaw.ifBlank { guessContentType(fileName) }
-    println("[masterdoc detect] wasm picked ${bytes.size} bytes from $fileName")
+    val outName = if (contentType == "image/jpeg" || resolvedName.endsWith(".jpg", true)) {
+        resolvedName
+    } else {
+        resolvedName.substringBeforeLast('.') + ".jpg"
+    }
+    val outType = if (bytes.size <= 1_800_000 && contentType.startsWith("image/")) contentType else "image/jpeg"
     onResult(
         PickedImage(
             bytes = bytes,
-            fileName = fileName.ifBlank { defaultFileName },
-            contentType = contentType,
+            fileName = outName.ifBlank { defaultFileName },
+            contentType = outType,
         ),
     )
-}
-
-private fun File.readBytes(onReady: (ByteArray) -> Unit) {
-    val reader = FileReader()
-    reader.onload = {
-        val buffer = reader.result as? ArrayBuffer
-        if (buffer == null) {
-            onReady(ByteArray(0))
-        } else {
-            onReady(arrayBufferToByteArray(buffer))
-        }
-    }
-    reader.onerror = {
-        println("[masterdoc detect] wasm FileReader error")
-        onReady(ByteArray(0))
-    }
-    reader.readAsArrayBuffer(this)
 }
 
 private fun guessContentType(fileName: String): String = when {

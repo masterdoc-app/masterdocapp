@@ -1,12 +1,17 @@
 package pro.masterdoc.data
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 class HttpClientFactory {
     fun create(): HttpClient = HttpClient {
+        install(HttpTimeout) {
+            requestTimeoutMillis = 180_000
+            socketTimeoutMillis = 180_000
+        }
         install(ContentNegotiation) {
             json(
                 Json {

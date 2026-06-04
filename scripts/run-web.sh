@@ -10,6 +10,7 @@ cd "$ROOT"
 cd "$PKG"
 cp "$ROOT/composeApp/src/wasmJsMain/resources/index.html" \
    "$ROOT/composeApp/src/wasmJsMain/resources/masterdoc-camera.js" \
+   "$ROOT/composeApp/src/wasmJsMain/resources/masterdoc-image.js" \
    "$PKG/kotlin/"
 
 # Patch before webpack so composeApp.js bundle includes Kotlin error logging.
@@ -30,6 +31,7 @@ fi
 npx webpack --config webpack.config.js --output-path ./kotlin
 cp "$ROOT/composeApp/src/wasmJsMain/resources/index.html" \
    "$ROOT/composeApp/src/wasmJsMain/resources/masterdoc-camera.js" \
+   "$ROOT/composeApp/src/wasmJsMain/resources/masterdoc-image.js" \
    "$PKG/kotlin/"
 
 if command -v fuser >/dev/null 2>&1; then

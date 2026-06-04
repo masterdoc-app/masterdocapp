@@ -14,7 +14,6 @@ interface RootComponent {
     fun onOpenCamera()
     fun onCameraPhotoResult(imageBytes: ByteArray, fileName: String, contentType: String)
     fun onCameraCancelled()
-    fun onOpenChatGuide()
     fun onOpenSummary()
     fun onBack()
     fun onFinishAndRestart()

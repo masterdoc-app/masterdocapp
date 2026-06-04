@@ -9,7 +9,7 @@ import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.popTo
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
-import pro.masterdoc.domain.chat.ChatRole
+import pro.masterdoc.domain.chat.toTranscriptTurns
 import pro.masterdoc.presentation.chat.ChatComponent
 import pro.masterdoc.presentation.chat.ChatStore
 import pro.masterdoc.presentation.equipment.EquipmentSelectionStore
@@ -36,7 +36,6 @@ class DefaultRootComponent(
                 FlowConfig.Scan -> FlowChild.Scan
                 FlowConfig.Camera -> FlowChild.Camera
                 FlowConfig.ChatDescribe -> FlowChild.ChatDescribe
-                FlowConfig.ChatGuide -> FlowChild.ChatGuide
                 FlowConfig.Summary -> FlowChild.Summary
             }
         }
@@ -72,11 +71,6 @@ class DefaultRootComponent(
     }
 
     @OptIn(DelicateDecomposeApi::class)
-    override fun onOpenChatGuide() {
-        navigation.push(FlowConfig.ChatGuide)
-    }
-
-    @OptIn(DelicateDecomposeApi::class)
     override fun onOpenSummary() {
         prefillSummaryFromSession()
         navigation.push(FlowConfig.Summary)
@@ -90,29 +84,18 @@ class DefaultRootComponent(
                 assistantId = equipment?.id,
                 assistantName = equipment?.name,
                 conversationId = chatState.conversationId,
-            ),
-        )
-        val userText = chatState.messages
-            .filter { it.role == ChatRole.User }
-            .joinToString("\n") { it.content.trim() }
-            .trim()
-        val assistantText = chatState.messages
-            .filter { it.role == ChatRole.Assistant }
-            .lastOrNull()
-            ?.content
-            ?.trim()
-            .orEmpty()
-        summary.accept(
-            SummaryStore.Intent.PrefillFromSession(
-                reported = userText,
-                resolved = assistantText,
+                transcript = chatState.messages.toTranscriptTurns(),
             ),
         )
     }
 
     override fun onBack() {
-        if (stack.value.backStack.isNotEmpty()) {
-            navigation.pop()
+        if (stack.value.backStack.isEmpty()) return
+        val leaving = stack.value.active.configuration
+        navigation.pop()
+        if (leaving == FlowConfig.ChatDescribe) {
+            chat.equipmentStore.accept(EquipmentSelectionStore.Intent.ClearSelection)
+            chat.store.accept(ChatStore.Intent.ResetSession)
         }
     }
 

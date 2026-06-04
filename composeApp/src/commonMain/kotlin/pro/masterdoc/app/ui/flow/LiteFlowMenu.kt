@@ -13,7 +13,10 @@ import pro.masterdoc.presentation.root.FlowChild
 import pro.masterdoc.presentation.root.RootComponent
 
 @Composable
-fun rememberLiteFlowMenuState(root: RootComponent): LiteFlowMenuState {
+fun rememberLiteFlowMenuState(
+    root: RootComponent,
+    canFinishCase: Boolean = false,
+): LiteFlowMenuState {
     var expanded by remember { mutableStateOf(false) }
     val stack by root.stack.subscribeAsState()
     val active = stack.active.instance
@@ -36,7 +39,7 @@ fun rememberLiteFlowMenuState(root: RootComponent): LiteFlowMenuState {
             expanded = false
             root.onFinishAndRestart()
         },
-        showFinish = active is FlowChild.ChatGuide || active is FlowChild.ChatDescribe,
+        showFinish = active is FlowChild.ChatDescribe && canFinishCase,
     )
 }
 

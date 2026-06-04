@@ -3,6 +3,14 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PKG="$ROOT/build/js/packages/Masterdoc-composeApp-wasm-js"
 PORT="${MASTERDOC_WEB_PORT:-8088}"
+SKIP_BUILD="${MASTERDOC_WEB_SKIP_BUILD:-0}"
+
+# shellcheck source=scripts/web-lib.sh
+source "$(dirname "$0")/web-lib.sh"
+
+if [ "$SKIP_BUILD" = "1" ]; then
+  exec "$(dirname "$0")/serve-web.sh"
+fi
 
 cd "$ROOT"
 # API URL is baked into Wasm at compile time — always regenerate from local.properties.
@@ -34,15 +42,12 @@ cp "$ROOT/composeApp/src/wasmJsMain/resources/index.html" \
    "$ROOT/composeApp/src/wasmJsMain/resources/masterdoc-image.js" \
    "$PKG/kotlin/"
 
-if command -v fuser >/dev/null 2>&1; then
-  fuser -k "${PORT}/tcp" >/dev/null 2>&1 || true
-elif command -v lsof >/dev/null 2>&1; then
-  pid="$(lsof -ti ":${PORT}" 2>/dev/null || true)"
-  if [ -n "$pid" ]; then kill $pid 2>/dev/null || true; sleep 1; fi
-else
-  pkill -f "http.server ${PORT}" 2>/dev/null || true
-fi
+masterdoc_web_free_build_memory "$ROOT"
+masterdoc_web_stop_listener "$PORT"
 
+API_HINT="$(grep -E '^masterdoc\.api\.baseUrl=' "$ROOT/local.properties" 2>/dev/null | cut -d= -f2- || echo 'http://api.masterdoc.pro/v1')"
 echo "Web: http://127.0.0.1:${PORT}/"
-echo "API: http://api.masterdoc.pro/v1 (local.properties masterdoc.api.baseUrl)"
-exec python3 -m http.server "$PORT" --directory "$PKG/kotlin"
+echo "API: ${API_HINT} (local.properties masterdoc.api.baseUrl)"
+echo "Только сервер (без сборки): MASTERDOC_WEB_SKIP_BUILD=1 $0"
+echo "Остановка: Ctrl+C"
+exec python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$PKG/kotlin"

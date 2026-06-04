@@ -22,6 +22,10 @@ import pro.masterdoc.presentation.chat.DefaultChatComponent
 import pro.masterdoc.presentation.equipment.EquipmentSelectionStoreFactory
 import pro.masterdoc.presentation.root.DefaultRootComponent
 import pro.masterdoc.presentation.root.RootComponent
+import pro.masterdoc.data.casereport.CaseReportsApi
+import pro.masterdoc.data.casereport.CaseReportsRepository
+import pro.masterdoc.data.casereport.HttpCaseReportsRepository
+import pro.masterdoc.data.casereport.LoggingCaseReportsRepository
 import pro.masterdoc.presentation.summary.SummaryStoreFactory
 
 val sharedModule = module {
@@ -31,6 +35,7 @@ val sharedModule = module {
 
     factory { AssistantsApi(httpClient = get(), apiConfig = get()) }
     factory { ChatApi(httpClient = get(), apiConfig = get()) }
+    factory { CaseReportsApi(httpClient = get(), apiConfig = get()) }
 
     single<AssistantsRepository> {
         when (defaultChatDataMode()) {
@@ -48,7 +53,14 @@ val sharedModule = module {
 
     factory { EquipmentSelectionStoreFactory(storeFactory = get(), repository = get()) }
     factory { ChatStoreFactory(storeFactory = get(), repository = get()) }
-    factory { SummaryStoreFactory(storeFactory = get()) }
+    single<CaseReportsRepository> {
+        when (defaultChatDataMode()) {
+            ChatDataMode.Mock -> LoggingCaseReportsRepository()
+            ChatDataMode.Http -> HttpCaseReportsRepository(api = get())
+        }
+    }
+
+    factory { SummaryStoreFactory(storeFactory = get(), caseReportsRepository = get()) }
 
     factory<ChatComponent> { params ->
         DefaultChatComponent(

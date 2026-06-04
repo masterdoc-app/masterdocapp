@@ -3,22 +3,21 @@ package pro.masterdoc.app.ui.chat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -64,7 +63,6 @@ fun ChatAssistantTimeline(
 private fun TimelineStepRow(step: ChatTimelineStep) {
     val isActive = step.status == TimelineStepStatus.Active
     val isError = step.status == TimelineStepStatus.Error
-    var expanded by rememberSaveable(step.id) { mutableStateOf(isActive && step.kind == TimelineStepKind.Thinking) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -75,10 +73,11 @@ private fun TimelineStepRow(step: ChatTimelineStep) {
             if (isActive) {
                 CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
             } else {
-                Text(
-                    text = if (isError) "✕" else "✓",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isError) {
+                Icon(
+                    imageVector = if (isError) Icons.Filled.Close else Icons.Filled.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = if (isError) {
                         MaterialTheme.colorScheme.error
                     } else {
                         MaterialTheme.colorScheme.secondary
@@ -95,27 +94,6 @@ private fun TimelineStepRow(step: ChatTimelineStep) {
                 },
                 modifier = Modifier.weight(1f),
             )
-        }
-
-        if (step.kind == TimelineStepKind.Thinking && step.detail.isNotBlank()) {
-            val preview = step.detail.lineSequence().take(2).joinToString(" ").take(120)
-            val detailText = if (expanded) step.detail else preview
-            ChatMarkdownText(
-                content = detailText,
-                modifier = Modifier
-                    .padding(start = 22.dp, top = 4.dp)
-                    .clickable { expanded = !expanded },
-            )
-            if (step.detail.length > preview.length) {
-                Text(
-                    text = if (expanded) "Свернуть" else "Показать ход мыслей",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier
-                        .padding(start = 22.dp, top = 2.dp)
-                        .clickable { expanded = !expanded },
-                )
-            }
         }
 
         AnimatedVisibility(

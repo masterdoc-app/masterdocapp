@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import pro.masterdoc.app.ui.flow.CameraScreenContent
 import pro.masterdoc.app.ui.flow.ChatDescribeScreenContent
-import pro.masterdoc.app.ui.flow.ChatGuideScreenContent
 import pro.masterdoc.app.ui.flow.ScanScreenContent
 import pro.masterdoc.app.ui.flow.SummaryScreenContent
 import pro.masterdoc.presentation.root.FlowChild
@@ -29,10 +28,6 @@ fun RootContent(component: RootComponent) {
             modifier = Modifier.fillMaxSize(),
         )
         FlowChild.ChatDescribe -> ChatDescribeScreenContent(
-            root = component,
-            chat = component.chat,
-        )
-        FlowChild.ChatGuide -> ChatGuideScreenContent(
             root = component,
             chat = component.chat,
         )

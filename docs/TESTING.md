@@ -29,7 +29,7 @@ export MASTERDOC_INTEGRATION=1
 
 Проверенный сценарий detect (браузер, 2026-06): снимок с `getUserMedia` → `POST …/assistants/detect` → **200** → переход на «Описание сбоя». Зафиксирован в `DetectAssistantIntegrationTest` (стаб `detect-integration-stub.jpg`).
 
-Если integration падает с `500` и `Request timeout` от Onyx — повторите позже или проверьте бэкенд; тест делает до 2 попыток.
+Если integration падает с `500` и `Request timeout` от Onyx — проверьте Onyx/LLM; бэкенд и nginx ждут detect до **600 с**, клиент (`HttpClientFactory`) — тоже. Тест делает до 2 попыток.
 
 ## Unit-тесты (JVM, без сети)
 
@@ -37,7 +37,7 @@ export MASTERDOC_INTEGRATION=1
 |-------|----------------|
 | `MockChatRepositoryTest` | Mock-репозиторий чата |
 | `OnyxStreamAccumulatorTest` | Парсинг NDJSON/SSE стрима |
-| `DefaultRootComponentBackTest` | `onBack()` / стек навигации |
+| `DefaultRootComponentBackTest` | `onBack()` / стек: Scan ↔ Describe ↔ Summary, Camera cancel |
 
 ## UI-тесты (Desktop)
 
@@ -46,6 +46,7 @@ export MASTERDOC_INTEGRATION=1
 | `LiteAppHeadBackTest` | Кнопка «Назад» в `LiteAppHead` (`MasterdocTestTags.APP_HEAD_BACK`) |
 | `MasterdocDetectLoadingOverlayTest` | Оверлей «Распознаём станцию…» (`DETECT_LOADING_OVERLAY`, `DETECT_LOADING_TITLE`) |
 | `ScanScreenDetectLoaderTest` | Появление/скрытие оверлея на экране скана при `isDetecting` |
+| `FlowScreensBackButtonTest` | Стрелка «Назад» на Scan, списке оборудования, Describe, Summary, Camera |
 
 ## Ручная проверка (Web + камера)
 
@@ -53,7 +54,12 @@ export MASTERDOC_INTEGRATION=1
 
 ```bash
 ./scripts/run-web.sh
-# http://127.0.0.1:8088/ — hard refresh, masterdoc-camera.js?v=32+
+# http://127.0.0.1:8088/ — hard refresh, composeApp.js?v=27+
+
+# Если после «Serving HTTP…» сразу «Killed» (OOM после Gradle/Webpack):
+MASTERDOC_WEB_SKIP_BUILD=1 ./scripts/run-web.sh
+# или только сервер:
+./scripts/serve-web.sh
 ```
 
 Чеклист: «Сканировать» → live preview (не «Открыть файл») → снимок → оверлей «Распознаём станцию…» (до ответа API) → экран «Описание сбоя».

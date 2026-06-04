@@ -25,6 +25,7 @@ import pro.masterdoc.app.ui.theme.MasterdocPrimaryButton
 import pro.masterdoc.app.ui.theme.MasterdocSecondaryButton
 import pro.masterdoc.presentation.chat.ChatComponent
 import pro.masterdoc.presentation.chat.ChatStore
+import pro.masterdoc.presentation.chat.canFinishCase
 import pro.masterdoc.presentation.root.RootComponent
 
 @Composable
@@ -32,16 +33,14 @@ fun ChatDescribeScreenContent(
     root: RootComponent,
     chat: ChatComponent,
 ) {
-    val menu = rememberLiteFlowMenuState(root)
     val equipmentState by chat.equipmentStore.states.collectAsState(initial = chat.equipmentStore.state)
     val chatState by chat.store.states.collectAsState(initial = chat.store.state)
+    val canFinishCase = chatState.canFinishCase()
+    val menu = rememberLiteFlowMenuState(root, canFinishCase = canFinishCase)
     var textMode by remember { mutableStateOf(false) }
     var isListening by remember { mutableStateOf(false) }
 
     val stationTitle = equipmentState.selectedAssistant?.name?.let { "Masterdoc · $it" } ?: "Masterdoc"
-    val canContinue = chatState.messages.any { it.role == pro.masterdoc.domain.chat.ChatRole.User } ||
-        chatState.input.isNotBlank()
-
     LiteFlowDropdownMenu(menu)
 
     Column(
@@ -51,7 +50,7 @@ fun ChatDescribeScreenContent(
     ) {
         LiteAppHead(
             title = stationTitle,
-            subtitle = if (isListening) "Голос · активен" else "Описание сбоя",
+            subtitle = if (isListening) "Голос · активен" else "Чат · подсказки Onyx",
             onBack = root::onBack,
             onMenuClick = menu.onOpen,
             subtitleLive = isListening,
@@ -107,19 +106,20 @@ fun ChatDescribeScreenContent(
             fillMaxWidth = true,
         )
 
-        MasterdocPrimaryButton(
-            text = "К подсказкам",
-            onClick = {
-                if (chatState.input.isNotBlank() && !chatState.isSending) {
-                    chat.store.accept(ChatStore.Intent.SendClicked)
-                }
-                root.onOpenChatGuide()
-            },
-            modifier = Modifier.padding(
-                horizontal = MasterdocDimens.Space14,
-                vertical = MasterdocDimens.Space12,
-            ),
-            enabled = canContinue,
-        )
+        if (canFinishCase) {
+            MasterdocPrimaryButton(
+                text = "Завершить кейс",
+                onClick = {
+                    if (chatState.input.isNotBlank()) {
+                        chat.store.accept(ChatStore.Intent.SendClicked)
+                    }
+                    root.onOpenSummary()
+                },
+                modifier = Modifier.padding(
+                    horizontal = MasterdocDimens.Space14,
+                    vertical = MasterdocDimens.Space12,
+                ),
+            )
+        }
     }
 }

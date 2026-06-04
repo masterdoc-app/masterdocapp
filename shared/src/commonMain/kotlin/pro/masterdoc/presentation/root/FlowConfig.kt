@@ -7,6 +7,5 @@ enum class FlowConfig {
     Scan,
     Camera,
     ChatDescribe,
-    ChatGuide,
     Summary,
 }

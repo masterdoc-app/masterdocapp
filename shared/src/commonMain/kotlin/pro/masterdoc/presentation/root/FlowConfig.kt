@@ -8,4 +8,5 @@ enum class FlowConfig {
     Camera,
     ChatDescribe,
     Summary,
+    FrequentIssues,
 }

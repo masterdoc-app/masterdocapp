@@ -8,6 +8,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import pro.masterdoc.app.ui.flow.CameraScreenContent
 import pro.masterdoc.app.ui.flow.ChatDescribeScreenContent
 import pro.masterdoc.app.ui.flow.ScanScreenContent
+import pro.masterdoc.app.ui.flow.FrequentIssuesScreenContent
 import pro.masterdoc.app.ui.flow.SummaryScreenContent
 import pro.masterdoc.presentation.root.FlowChild
 import pro.masterdoc.presentation.root.RootComponent
@@ -34,6 +35,10 @@ fun RootContent(component: RootComponent) {
         FlowChild.Summary -> SummaryScreenContent(
             root = component,
             summary = component.summary,
+        )
+        FlowChild.FrequentIssues -> FrequentIssuesScreenContent(
+            root = component,
+            reportList = component.reportList,
         )
     }
 }

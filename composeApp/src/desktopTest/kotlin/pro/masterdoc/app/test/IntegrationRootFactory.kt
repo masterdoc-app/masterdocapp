@@ -5,29 +5,40 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.start
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
-import pro.masterdoc.data.assistant.MockAssistantsRepository
-import pro.masterdoc.data.chat.MockChatRepository
+import pro.masterdoc.data.HttpClientFactory
+import pro.masterdoc.data.assistant.AssistantsApi
+import pro.masterdoc.data.assistant.HttpAssistantsRepository
+import pro.masterdoc.data.casereport.CaseReportsApi
+import pro.masterdoc.data.casereport.HttpCaseReportsRepository
+import pro.masterdoc.data.chat.ChatApi
+import pro.masterdoc.data.chat.HttpChatRepository
+import pro.masterdoc.data.integrationApiConfig
 import pro.masterdoc.presentation.chat.ChatStoreFactory
 import pro.masterdoc.presentation.chat.DefaultChatComponent
 import pro.masterdoc.presentation.equipment.EquipmentSelectionStoreFactory
-import pro.masterdoc.presentation.root.DefaultRootComponent
-import pro.masterdoc.data.casereport.CaseReportsRepository
-import pro.masterdoc.data.casereport.LoggingCaseReportsRepository
 import pro.masterdoc.presentation.report.ReportListStoreFactory
+import pro.masterdoc.presentation.root.DefaultRootComponent
 import pro.masterdoc.presentation.summary.SummaryStoreFactory
 
-object TestRootFactory {
-    fun create(caseReportsRepository: CaseReportsRepository = LoggingCaseReportsRepository()): DefaultRootComponent {
+/** Root with HTTP repositories for E2E against production/staging API. */
+object IntegrationRootFactory {
+    fun create(): DefaultRootComponent {
         val lifecycle = LifecycleRegistry()
         val storeFactory = DefaultStoreFactory()
+        val httpClient = HttpClientFactory().create()
+        val apiConfig = integrationApiConfig()
+        val assistantsApi = AssistantsApi(httpClient, apiConfig)
+        val chatApi = ChatApi(httpClient, apiConfig)
+        val reportsApi = CaseReportsApi(httpClient, apiConfig)
         val equipmentStoreFactory = EquipmentSelectionStoreFactory(
             storeFactory = storeFactory,
-            repository = MockAssistantsRepository(),
+            repository = HttpAssistantsRepository(assistantsApi),
         )
         val chatStoreFactory = ChatStoreFactory(
             storeFactory = storeFactory,
-            repository = MockChatRepository(),
+            repository = HttpChatRepository(chatApi),
         )
+        val caseReportsRepository = HttpCaseReportsRepository(reportsApi)
         val root = DefaultRootComponent(
             componentContext = DefaultComponentContext(lifecycle),
             chatFactory = { ctx ->

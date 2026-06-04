@@ -26,6 +26,34 @@ export MASTERDOC_INTEGRATION=1
 | `DetectAssistantIntegrationTest` | `POST /v1/assistants/detect` — JPEG-стаб → имя станции из списка assistants (до ~5 мин, LLM) |
 | `MasterdocChatApiIntegrationTest` | `POST` чат — ответ ассистента |
 | `StreamingChatIntegrationTest` | Стриминг чата + timeline |
+| `RefrigeratorFullFlowE2eTest` | **Полный lite-flow UI (Desktop):** Scan → Холодильники → вопрос в чат → ответ Onyx → итог → `POST /v1/report` → проверка `GET /v1/report`; опционально grep логов бэкенда |
+
+### Полный E2E (Desktop UI + API + логи)
+
+```bash
+export MASTERDOC_INTEGRATION=1
+# опционально: export MASTERDOC_API_BASE_URL=https://api.masterdoc.pro/v1
+
+./gradlew :composeApp:desktopTest --tests RefrigeratorFullFlowE2eTest
+```
+
+Сценарий (автоматически):
+
+1. Запуск `RootContent` (Desktop UI test).
+2. «Список оборудования» → выбор станции с именем **Холодильник**\*.
+3. «Ввести текстом» → «холодильник не включается» → «Отправить».
+4. Ожидание ответа ассистента (до **10 мин**).
+5. «Завершить кейс» → поле результата с маркером `e2e-flow-<timestamp>` → «Отправить».
+6. **БД:** `GET /v1/report?assistant_id=…` содержит маркер (тот же SQLite, что на сервере).
+7. **Логи (опционально):** если задан `MASTERDOC_E2E_SERVER_LOG_CMD`, тест ищет строку `[masterdoc case-report] saved …` с маркером. Или вручную:
+
+```bash
+chmod +x scripts/verify-e2e-report-log.sh
+export MASTERDOC_E2E_SERVER_LOG_CMD='ssh root@YOUR_HOST journalctl -u masterdoc-backend --since "20 min ago"'
+./scripts/verify-e2e-report-log.sh e2e-flow-1717420000000
+```
+
+\* В API имя может быть «Холодильники» — тест ищет подстроку `Холодильник`.
 
 Проверенный сценарий detect (браузер, 2026-06): снимок с `getUserMedia` → `POST …/assistants/detect` → **200** → переход на «Описание сбоя». Зафиксирован в `DetectAssistantIntegrationTest` (стаб `detect-integration-stub.jpg`).
 
@@ -38,6 +66,8 @@ export MASTERDOC_INTEGRATION=1
 | `MockChatRepositoryTest` | Mock-репозиторий чата |
 | `OnyxStreamAccumulatorTest` | Парсинг NDJSON/SSE стрима |
 | `DefaultRootComponentBackTest` | `onBack()` / стек: Scan ↔ Describe ↔ Summary, Camera cancel |
+| `FlowNavigationRestoreTest` | «Рефреш» Web: `sessionStorage` → тот же экран (Camera, Chat, Summary, FrequentIssues, Scan) |
+| `FlowNavigationSnapshotTest` | Валидация snapshot без станции → откат на Scan |
 
 ## UI-тесты (Desktop)
 
@@ -47,6 +77,28 @@ export MASTERDOC_INTEGRATION=1
 | `MasterdocDetectLoadingOverlayTest` | Оверлей «Распознаём станцию…» (`DETECT_LOADING_OVERLAY`, `DETECT_LOADING_TITLE`) |
 | `ScanScreenDetectLoaderTest` | Появление/скрытие оверлея на экране скана при `isDetecting` |
 | `FlowScreensBackButtonTest` | Стрелка «Назад» на Scan, списке оборудования, Describe, Summary, Camera |
+| `FrequentIssuesScreenTest` | Экран «Частые неисправности»: UI + golden PNG в `composeApp/src/desktopTest/screenshots/golden/` |
+| `RefrigeratorFullFlowE2eTest` | Полный lite-flow на прод API (`MASTERDOC_INTEGRATION=1`, см. выше) |
+
+Перегенерация скриншотов экрана частых неисправностей:
+
+```bash
+./gradlew :composeApp:desktopTest --tests FrequentIssuesScreenTest
+```
+
+Файлы: `frequent_issues_empty.png`, `frequent_issues_list.png`.
+
+## Сохранение экрана при refresh (Web)
+
+Стек навигации и выбранная станция пишутся в `sessionStorage` (`masterdoc.flow.v1`). После F5 открывается тот же экран (кроме локального оверлея «Список оборудования» на Scan).
+
+Автотесты (JVM, in-memory вместо `sessionStorage`):
+
+```bash
+./gradlew :shared:jvmTest --tests FlowNavigationRestoreTest
+```
+
+Ручная проверка в браузере: выберите станцию → перейдите в чат / итог / частые неисправности / камеру → F5 → тот же экран.
 
 ## Ручная проверка (Web + камера)
 

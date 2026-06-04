@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -24,6 +25,7 @@ import pro.masterdoc.app.ui.theme.LiteFieldShape
 import pro.masterdoc.app.ui.theme.LiteListenPanel
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocPrimaryButton
+import pro.masterdoc.app.ui.theme.MasterdocTestTags
 import pro.masterdoc.app.ui.theme.MasterdocSecondaryButton
 import pro.masterdoc.presentation.chat.ChatComponent
 import pro.masterdoc.presentation.chat.ChatStore
@@ -38,13 +40,11 @@ fun ChatDescribeScreenContent(
     val equipmentState by chat.equipmentStore.states.collectAsState(initial = chat.equipmentStore.state)
     val chatState by chat.store.states.collectAsState(initial = chat.store.state)
     val canFinishCase = chatState.canFinishCase()
-    val menu = rememberLiteFlowMenuState(root, canFinishCase = canFinishCase)
+    val menu = rememberLiteFlowMenuState(root)
     var textMode by remember { mutableStateOf(false) }
     var isListening by remember { mutableStateOf(false) }
 
     val stationTitle = equipmentState.selectedAssistant?.name?.let { "Masterdoc · $it" } ?: "Masterdoc"
-    LiteFlowDropdownMenu(menu)
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,7 +55,7 @@ fun ChatDescribeScreenContent(
             title = stationTitle,
             subtitle = if (isListening) "Голос · активен" else "Чат · подсказки Onyx",
             onBack = root::onBack,
-            onMenuClick = menu.onOpen,
+            menuAnchor = liteFlowMenuAnchor(menu),
             subtitleLive = isListening,
         )
 
@@ -71,6 +71,7 @@ fun ChatDescribeScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = MasterdocDimens.Space14)
+                    .testTag(MasterdocTestTags.CHAT_DESCRIBE_INPUT)
                     .masterdocChatInputKeys(
                         input = chatState.input,
                         isSending = chatState.isSending,
@@ -86,7 +87,9 @@ fun ChatDescribeScreenContent(
             MasterdocPrimaryButton(
                 text = if (chatState.isSending) "Отправляем…" else "Отправить",
                 onClick = { chat.store.accept(ChatStore.Intent.SendClicked) },
-                modifier = Modifier.padding(horizontal = MasterdocDimens.Space14, vertical = MasterdocDimens.Space8),
+                modifier = Modifier
+                    .padding(horizontal = MasterdocDimens.Space14, vertical = MasterdocDimens.Space8)
+                    .testTag(MasterdocTestTags.CHAT_DESCRIBE_SEND),
                 enabled = chatState.input.isNotBlank() && !chatState.isSending,
             )
         } else {
@@ -122,10 +125,9 @@ fun ChatDescribeScreenContent(
                     }
                     root.onOpenSummary()
                 },
-                modifier = Modifier.padding(
-                    horizontal = MasterdocDimens.Space14,
-                    vertical = MasterdocDimens.Space12,
-                ),
+                modifier = Modifier
+                    .padding(horizontal = MasterdocDimens.Space14, vertical = MasterdocDimens.Space12)
+                    .testTag(MasterdocTestTags.CHAT_FINISH_CASE),
             )
         }
     }

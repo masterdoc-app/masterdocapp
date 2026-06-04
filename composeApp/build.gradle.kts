@@ -69,10 +69,19 @@ kotlin {
         val desktopTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.java)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.desktop.uiTestJUnit4)
             }
         }
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    if (name == "desktopTest") {
+        systemProperty("compose.test.root.dir", projectDir.absolutePath)
     }
 }
 

@@ -36,12 +36,17 @@ class CaseReportsApi(
         assistantId: Int,
         page: Int = 0,
         size: Int = 20,
-    ): PaginatedCaseReports =
-        httpClient.get("${apiConfig.baseUrl}/report") {
+    ): PaginatedCaseReports {
+        val response = httpClient.get("${apiConfig.baseUrl}/report") {
             parameter("assistant_id", assistantId)
             parameter("page", page)
             parameter("size", size)
-        }.body<PaginatedCaseReportsResponseDto>().toDomain()
+        }
+        if (!response.status.isSuccess()) {
+            error("Case report API ${response.status.value}: ${response.bodyAsText().take(300)}")
+        }
+        return response.body<PaginatedCaseReportsResponseDto>().toDomain()
+    }
 }
 
 private fun CaseReportSubmitRequest.toDto() = CreateCaseReportRequestDto(

@@ -26,6 +26,7 @@ import pro.masterdoc.data.casereport.CaseReportsApi
 import pro.masterdoc.data.casereport.CaseReportsRepository
 import pro.masterdoc.data.casereport.HttpCaseReportsRepository
 import pro.masterdoc.data.casereport.LoggingCaseReportsRepository
+import pro.masterdoc.presentation.report.ReportListStoreFactory
 import pro.masterdoc.presentation.summary.SummaryStoreFactory
 
 val sharedModule = module {
@@ -61,6 +62,7 @@ val sharedModule = module {
     }
 
     factory { SummaryStoreFactory(storeFactory = get(), caseReportsRepository = get()) }
+    factory { ReportListStoreFactory(storeFactory = get(), caseReportsRepository = get()) }
 
     factory<ChatComponent> { params ->
         DefaultChatComponent(
@@ -77,6 +79,7 @@ val sharedModule = module {
                 get<ChatComponent> { org.koin.core.parameter.parametersOf(chatContext) }
             },
             summaryStoreFactory = get(),
+            reportListStoreFactory = get(),
         )
     }
 }

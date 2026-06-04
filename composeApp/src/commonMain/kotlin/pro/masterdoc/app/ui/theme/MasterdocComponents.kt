@@ -105,6 +105,8 @@ fun LiteAppHead(
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
     onMenuClick: (() -> Unit)? = null,
+    /** Anchored overflow menu (three dots). Prefer over [onMenuClick] + standalone [DropdownMenu]. */
+    menuAnchor: (@Composable () -> Unit)? = null,
     subtitleLive: Boolean = false,
     markLetter: String? = null,
     markColor: androidx.compose.ui.graphics.Color = MasterdocPalette.Marian,
@@ -188,23 +190,26 @@ fun LiteAppHead(
                 )
             }
         }
-        if (onMenuClick != null) {
-            Column(
-                modifier = Modifier
-                    .clickable(onClick = onMenuClick)
-                    .padding(MasterdocDimens.Space4),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                repeat(3) {
-                    Box(
-                        modifier = Modifier
-                            .size(3.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurfaceVariant,
-                                CircleShape,
-                            ),
-                    )
+        when {
+            menuAnchor != null -> menuAnchor()
+            onMenuClick != null -> {
+                Column(
+                    modifier = Modifier
+                        .clickable(onClick = onMenuClick)
+                        .padding(MasterdocDimens.Space4),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    repeat(3) {
+                        Box(
+                            modifier = Modifier
+                                .size(3.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.onSurfaceVariant,
+                                    CircleShape,
+                                ),
+                        )
+                    }
                 }
             }
         }

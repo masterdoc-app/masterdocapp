@@ -1,45 +1,50 @@
 package pro.masterdoc.app.ui.flow
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.arkivanov.mvikotlin.extensions.coroutines.states
+import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.presentation.root.FlowChild
 import pro.masterdoc.presentation.root.RootComponent
 
 @Composable
-fun rememberLiteFlowMenuState(
-    root: RootComponent,
-    canFinishCase: Boolean = false,
-): LiteFlowMenuState {
+fun rememberLiteFlowMenuState(root: RootComponent): LiteFlowMenuState {
     var expanded by remember { mutableStateOf(false) }
     val stack by root.stack.subscribeAsState()
     val active = stack.active.instance
+    val equipmentState by root.chat.equipmentStore.states.collectAsState(
+        initial = root.chat.equipmentStore.state,
+    )
+    val hasAssistant = equipmentState.selectedAssistant != null
     return LiteFlowMenuState(
         expanded = expanded,
         onDismiss = { expanded = false },
         onOpen = { expanded = true },
-        onChangeEquipment = {
+        onOpenFrequentIssues = {
             expanded = false
-            root.onResetSession()
-            root.onFinishAndRestart()
+            root.onOpenFrequentIssues()
         },
-        onFinishCase = {
-            expanded = false
-            if (active !is FlowChild.Summary) {
-                root.onOpenSummary()
-            }
-        },
-        onRestart = {
-            expanded = false
-            root.onFinishAndRestart()
-        },
-        showFinish = active is FlowChild.ChatDescribe && canFinishCase,
+        showMenu = hasAssistant && active !is FlowChild.FrequentIssues,
     )
 }
 
@@ -47,31 +52,57 @@ data class LiteFlowMenuState(
     val expanded: Boolean,
     val onDismiss: () -> Unit,
     val onOpen: () -> Unit,
-    val onChangeEquipment: () -> Unit,
-    val onFinishCase: () -> Unit,
-    val onRestart: () -> Unit,
-    val showFinish: Boolean,
+    val onOpenFrequentIssues: () -> Unit,
+    /** Three-dot menu is shown when a station is selected and not on the frequent-issues screen. */
+    val showMenu: Boolean,
 )
 
+/** Three-dot trigger + [DropdownMenu] anchored to the top-bar button. */
 @Composable
-fun LiteFlowDropdownMenu(state: LiteFlowMenuState) {
-    DropdownMenu(
-        expanded = state.expanded,
-        onDismissRequest = state.onDismiss,
-    ) {
-        DropdownMenuItem(
-            text = { Text("Сменить оборудование") },
-            onClick = state.onChangeEquipment,
-        )
-        if (state.showFinish) {
+fun LiteFlowMenuAnchor(
+    state: LiteFlowMenuState,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier) {
+        LiteFlowMenuDots(onClick = state.onOpen)
+        DropdownMenu(
+            expanded = state.expanded,
+            onDismissRequest = state.onDismiss,
+        ) {
             DropdownMenuItem(
-                text = { Text("Завершить кейс") },
-                onClick = state.onFinishCase,
+                text = { Text("Частые неисправности") },
+                onClick = state.onOpenFrequentIssues,
             )
         }
-        DropdownMenuItem(
-            text = { Text("Начать заново") },
-            onClick = state.onRestart,
-        )
+    }
+}
+
+@Composable
+fun liteFlowMenuAnchor(menu: LiteFlowMenuState): (@Composable () -> Unit)? =
+    if (menu.showMenu) {
+        { LiteFlowMenuAnchor(menu) }
+    } else {
+        null
+    }
+
+@Composable
+private fun LiteFlowMenuDots(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(MasterdocDimens.Space4),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        repeat(3) {
+            Box(
+                modifier = Modifier
+                    .size(3.dp)
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant, CircleShape),
+            )
+        }
     }
 }

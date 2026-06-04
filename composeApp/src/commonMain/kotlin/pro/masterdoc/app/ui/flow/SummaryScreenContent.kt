@@ -14,12 +14,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import com.arkivanov.mvikotlin.extensions.coroutines.states
 import pro.masterdoc.app.ui.theme.LiteAppHead
 import pro.masterdoc.app.ui.theme.LiteFieldShape
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocPrimaryButton
+import pro.masterdoc.app.ui.theme.MasterdocTestTags
 import pro.masterdoc.presentation.root.RootComponent
 import pro.masterdoc.presentation.summary.SummaryStore
 
@@ -38,8 +40,6 @@ fun SummaryScreenContent(
         }
     }
 
-    LiteFlowDropdownMenu(menu)
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -53,7 +53,7 @@ fun SummaryScreenContent(
                 else -> "Опишите результат"
             },
             onBack = root::onBack,
-            onMenuClick = menu.onOpen,
+            menuAnchor = liteFlowMenuAnchor(menu),
             subtitleLive = state.isSubmitting,
         )
 
@@ -73,7 +73,8 @@ fun SummaryScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(top = MasterdocDimens.Space8),
+                    .padding(top = MasterdocDimens.Space8)
+                    .testTag(MasterdocTestTags.SUMMARY_RESULT_INPUT),
                 placeholder = { Text("Что сделали и чем закончилось…") },
                 minLines = 8,
                 shape = LiteFieldShape,
@@ -99,10 +100,9 @@ fun SummaryScreenContent(
         MasterdocPrimaryButton(
             text = if (state.isSubmitting) "Отправляем…" else "Отправить",
             onClick = { summary.accept(SummaryStore.Intent.SubmitReport) },
-            modifier = Modifier.padding(
-                horizontal = MasterdocDimens.Space14,
-                vertical = MasterdocDimens.Space12,
-            ),
+            modifier = Modifier
+                .padding(horizontal = MasterdocDimens.Space14, vertical = MasterdocDimens.Space12)
+                .testTag(MasterdocTestTags.SUMMARY_SUBMIT),
             enabled = canSubmit && !state.isSubmitting,
         )
     }

@@ -5,4 +5,5 @@ sealed class FlowChild {
     data object Camera : FlowChild()
     data object ChatDescribe : FlowChild()
     data object Summary : FlowChild()
+    data object FrequentIssues : FlowChild()
 }

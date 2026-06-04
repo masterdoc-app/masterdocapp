@@ -81,8 +81,6 @@ fun ScanScreenContent(
         }
     }
 
-    LiteFlowDropdownMenu(menu)
-
     ScanScreenCameraBindings(
         launchers = imagePickers,
         active = !showEquipmentList,
@@ -110,13 +108,13 @@ fun ScanScreenContent(
                     state = state,
                     equipmentStore = equipmentStore,
                     onBack = { showEquipmentList = false },
-                    onMenuClick = menu.onOpen,
+                    menu = menu,
                 )
             } else {
                 LiteAppHead(
                     title = "Masterdoc",
                     subtitle = "Скан · выбор станции",
-                    onMenuClick = menu.onOpen,
+                    menuAnchor = liteFlowMenuAnchor(menu),
                 )
                 ScanMainPane(
                     state = state,
@@ -241,7 +239,7 @@ private fun EquipmentListPane(
     state: EquipmentSelectionStore.State,
     equipmentStore: EquipmentSelectionStore,
     onBack: () -> Unit,
-    onMenuClick: () -> Unit,
+    menu: LiteFlowMenuState,
 ) {
     Column(
         modifier = Modifier
@@ -252,7 +250,7 @@ private fun EquipmentListPane(
             title = "Оборудование",
             subtitle = "Выберите станцию",
             onBack = onBack,
-            onMenuClick = onMenuClick,
+            menuAnchor = liteFlowMenuAnchor(menu),
         )
 
         Box(

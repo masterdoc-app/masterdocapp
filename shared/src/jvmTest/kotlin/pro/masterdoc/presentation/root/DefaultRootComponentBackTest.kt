@@ -13,6 +13,7 @@ import pro.masterdoc.presentation.chat.DefaultChatComponent
 import pro.masterdoc.presentation.equipment.EquipmentSelectionStore
 import pro.masterdoc.presentation.equipment.EquipmentSelectionStoreFactory
 import pro.masterdoc.data.casereport.LoggingCaseReportsRepository
+import pro.masterdoc.presentation.report.ReportListStoreFactory
 import pro.masterdoc.presentation.summary.SummaryStoreFactory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -81,6 +82,22 @@ class DefaultRootComponentBackTest {
     }
 
     @Test
+    fun onBack_fromFrequentIssues_returnsToPreviousScreen() {
+        val root = createRoot()
+        root.chat.equipmentStore.accept(
+            EquipmentSelectionStore.Intent.Select(Assistant(id = 1, name = "Холодильники")),
+        )
+        root.onEquipmentReady()
+        root.onOpenFrequentIssues()
+
+        assertIs<FlowChild.FrequentIssues>(root.stack.value.active.instance)
+
+        root.onBack()
+
+        assertIs<FlowChild.ChatDescribe>(root.stack.value.active.instance)
+    }
+
+    @Test
     fun onCameraCancelled_returnsToScan() {
         val root = createRoot()
         root.onOpenCamera()
@@ -113,6 +130,10 @@ class DefaultRootComponentBackTest {
                 )
             },
             summaryStoreFactory = SummaryStoreFactory(
+                storeFactory = storeFactory,
+                caseReportsRepository = LoggingCaseReportsRepository(),
+            ),
+            reportListStoreFactory = ReportListStoreFactory(
                 storeFactory = storeFactory,
                 caseReportsRepository = LoggingCaseReportsRepository(),
             ),

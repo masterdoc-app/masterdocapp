@@ -1,13 +1,16 @@
 package pro.masterdoc.data.casereport
 
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import pro.masterdoc.data.casereport.dto.CaseReportDto
 import pro.masterdoc.data.casereport.dto.CreateCaseReportRequestDto
 import pro.masterdoc.data.casereport.dto.PaginatedCaseReportsResponseDto
@@ -24,12 +27,13 @@ class CaseReportsApi(
 ) {
     suspend fun createReport(request: CaseReportSubmitRequest): CaseReport {
         val response = httpClient.post("${apiConfig.baseUrl}/report") {
-            setBody(request.toDto())
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(request.toDto()))
         }
         if (!response.status.isSuccess()) {
             error("Case report API ${response.status.value}: ${response.bodyAsText().take(300)}")
         }
-        return response.body<CaseReportDto>().toDomain()
+        return json.decodeFromString<CaseReportDto>(response.bodyAsText()).toDomain()
     }
 
     suspend fun listReports(
@@ -45,7 +49,14 @@ class CaseReportsApi(
         if (!response.status.isSuccess()) {
             error("Case report API ${response.status.value}: ${response.bodyAsText().take(300)}")
         }
-        return response.body<PaginatedCaseReportsResponseDto>().toDomain()
+        return json.decodeFromString<PaginatedCaseReportsResponseDto>(response.bodyAsText()).toDomain()
+    }
+
+    private companion object {
+        private val json = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
     }
 }
 

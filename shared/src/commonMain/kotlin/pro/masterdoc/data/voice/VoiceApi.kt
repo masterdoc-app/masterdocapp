@@ -18,7 +18,7 @@ class VoiceApi(
         wavBytes: ByteArray,
         fileName: String = "recording.wav",
     ): TranscribeVoiceResponseDto {
-        val response = httpClient.post("${apiConfig.baseUrl}/v1/voice/transcribe") {
+        val response = httpClient.post("${apiConfig.baseUrl}/voice/transcribe") {
             setBody(
                 MultiPartFormDataContent(
                     formData {

@@ -26,6 +26,7 @@ import pro.masterdoc.data.casereport.CaseReportsApi
 import pro.masterdoc.data.casereport.CaseReportsRepository
 import pro.masterdoc.data.casereport.HttpCaseReportsRepository
 import pro.masterdoc.data.casereport.LoggingCaseReportsRepository
+import pro.masterdoc.data.voice.VoiceApi
 import pro.masterdoc.presentation.report.ReportListStoreFactory
 import pro.masterdoc.presentation.summary.SummaryStoreFactory
 
@@ -37,6 +38,7 @@ val sharedModule = module {
     factory { AssistantsApi(httpClient = get(), apiConfig = get()) }
     factory { ChatApi(httpClient = get(), apiConfig = get()) }
     factory { CaseReportsApi(httpClient = get(), apiConfig = get()) }
+    factory { VoiceApi(httpClient = get(), apiConfig = get()) }
 
     single<AssistantsRepository> {
         when (defaultChatDataMode()) {

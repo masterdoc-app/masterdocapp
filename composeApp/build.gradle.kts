@@ -10,6 +10,8 @@ plugins {
 }
 
 kotlin {
+    applyDefaultHierarchyTemplate()
+
     androidTarget {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
@@ -54,13 +56,28 @@ kotlin {
             implementation(libs.imagepickerkmp)
         }
 
+        val voiceMain by creating {
+            dependsOn(commonMain.get())
+        }
+
+        voiceMain.dependencies {
+            implementation(libs.kodio.core)
+            implementation(libs.kodio.compose)
+            implementation(libs.kotlinx.io.core)
+        }
+
+        androidMain {
+            dependsOn(voiceMain)
+        }
+        val desktopMain by getting {
+            dependsOn(voiceMain)
+        }
+
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.decompose.android)
         }
-
-        val desktopMain by getting
 
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

@@ -27,6 +27,7 @@ export MASTERDOC_INTEGRATION=1
 | `MasterdocChatApiIntegrationTest` | `POST` чат — ответ ассистента |
 | `StreamingChatIntegrationTest` | Стриминг чата + timeline |
 | `RefrigeratorFullFlowE2eTest` | **Полный lite-flow UI (Desktop):** Scan → Холодильники → вопрос в чат → ответ Onyx → итог → `POST /v1/report` → проверка `GET /v1/report`; опционально grep логов бэкенда |
+| `KodioRecordingDesktopTest` | Kodio: запись ~0.8 с → WAV (нужен микрофон + `MASTERDOC_INTEGRATION=1`) |
 
 ### Полный E2E (Desktop UI + API + логи)
 
@@ -36,6 +37,19 @@ export MASTERDOC_INTEGRATION=1
 
 ./gradlew :composeApp:desktopTest --tests RefrigeratorFullFlowE2eTest
 ```
+
+### Голос (Kodio + Onyx STT)
+
+На **Desktop/Android** экран «Опишите»: микрофон → Kodio (`rememberRecorderState`) → WAV → `POST /v1/voice/transcribe` → текст в чат.
+
+```bash
+export MASTERDOC_INTEGRATION=1
+./gradlew :composeApp:desktopTest --tests KodioRecordingDesktopTest
+```
+
+На **Web (Wasm)** и **iOS** пока заглушка — текстовый ввод.
+
+Требования: в Onyx Admin включён STT (Voice Mode), на бэкенде задеплоен `POST /v1/voice/transcribe`.
 
 Сценарий (автоматически):
 

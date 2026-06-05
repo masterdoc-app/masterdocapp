@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -17,16 +15,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import com.arkivanov.mvikotlin.extensions.coroutines.states
+import org.koin.mp.KoinPlatformTools
 import pro.masterdoc.app.ui.chat.masterdocChatInputKeys
 import pro.masterdoc.app.ui.theme.LiteAppHead
-import pro.masterdoc.app.ui.theme.masterdocChatInputFieldColors
 import pro.masterdoc.app.ui.theme.LiteFieldShape
-import pro.masterdoc.app.ui.theme.LiteListenPanel
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocPrimaryButton
-import pro.masterdoc.app.ui.theme.MasterdocTestTags
 import pro.masterdoc.app.ui.theme.MasterdocSecondaryButton
+import pro.masterdoc.app.ui.theme.MasterdocTestTags
+import pro.masterdoc.app.ui.theme.masterdocChatInputFieldColors
+import pro.masterdoc.data.voice.VoiceApi
+import pro.masterdoc.platform.PlatformCapabilities
 import pro.masterdoc.presentation.chat.ChatComponent
 import pro.masterdoc.presentation.chat.ChatStore
 import pro.masterdoc.presentation.chat.canFinishCase
@@ -42,7 +44,10 @@ fun ChatDescribeScreenContent(
     val canFinishCase = chatState.canFinishCase()
     val menu = rememberLiteFlowMenuState(root)
     var textMode by remember { mutableStateOf(false) }
-    var isListening by remember { mutableStateOf(false) }
+    val voiceApi = remember {
+        KoinPlatformTools.defaultContext().getOrNull()?.get<VoiceApi>()
+    }
+    var voiceBusy by remember { mutableStateOf(false) }
 
     val stationTitle = equipmentState.selectedAssistant?.name?.let { "Masterdoc · $it" } ?: "Masterdoc"
     Column(
@@ -53,10 +58,13 @@ fun ChatDescribeScreenContent(
     ) {
         LiteAppHead(
             title = stationTitle,
-            subtitle = if (isListening) "Голос · активен" else "Чат · подсказки Onyx",
+            subtitle = when {
+                voiceBusy -> "Голос · распознаю"
+                else -> "Чат · подсказки Onyx"
+            },
             onBack = root::onBack,
             menuAnchor = liteFlowMenuAnchor(menu),
-            subtitleLive = isListening,
+            subtitleLive = voiceBusy,
         )
 
         ChatConversationPane(
@@ -92,17 +100,26 @@ fun ChatDescribeScreenContent(
                     .testTag(MasterdocTestTags.CHAT_DESCRIBE_SEND),
                 enabled = chatState.input.isNotBlank() && !chatState.isSending,
             )
-        } else {
-            LiteListenPanel(
-                label = "Слушаю · шумоподавление",
-                hint = if (isListening) "Распознаю…" else "Нажмите микрофон",
-                onMicClick = {
-                    isListening = !isListening
-                    if (!isListening && chatState.input.isBlank()) {
-                        textMode = true
-                    }
+        } else if (PlatformCapabilities.supportsMicrophone) {
+            ChatDescribeVoicePanel(
+                voiceApi = voiceApi,
+                onTranscript = { text ->
+                    chat.store.accept(ChatStore.Intent.InputChanged(text))
+                    chat.store.accept(ChatStore.Intent.SendClicked)
                 },
-                isListening = isListening,
+                onBusyChanged = { voiceBusy = it },
+                onError = { err ->
+                    if (err != null) textMode = true
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        } else {
+            ChatDescribeVoicePanel(
+                voiceApi = null,
+                onTranscript = {},
+                onBusyChanged = {},
+                onError = { textMode = true },
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 
@@ -113,7 +130,7 @@ fun ChatDescribeScreenContent(
                 .fillMaxWidth()
                 .padding(horizontal = MasterdocDimens.Space14),
             fillMaxWidth = true,
-            enabled = !(textMode && chatState.isSending),
+            enabled = !(textMode && chatState.isSending) && !voiceBusy,
         )
 
         if (canFinishCase) {
@@ -128,6 +145,7 @@ fun ChatDescribeScreenContent(
                 modifier = Modifier
                     .padding(horizontal = MasterdocDimens.Space14, vertical = MasterdocDimens.Space12)
                     .testTag(MasterdocTestTags.CHAT_FINISH_CASE),
+                enabled = !voiceBusy,
             )
         }
     }

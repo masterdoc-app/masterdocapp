@@ -1,5 +1,7 @@
 [versions]
-kotlin = "2.1.10"
+kotlin = "2.2.21"
+kodio = "0.1.5"
+kotlinxIo = "0.7.0"
 agp = "8.7.3"
 composeMultiplatform = "1.7.3"
 decompose = "3.3.0"
@@ -43,6 +45,9 @@ ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 markdown-renderer = { module = "com.mikepenz:multiplatform-markdown-renderer", version.ref = "markdownRenderer" }
 markdown-renderer-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdownRenderer" }
 imagepickerkmp = { module = "io.github.ismoy:imagepickerkmp", version.ref = "imagePickerKmp" }
+kodio-core = { module = "space.kodio:core", version.ref = "kodio" }
+kodio-compose = { module = "space.kodio.extensions:compose", version.ref = "kodio" }
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinxIo" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

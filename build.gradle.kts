@@ -6,3 +6,12 @@ plugins {
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.androidLibrary) apply false
 }
+
+subprojects {
+    configurations.configureEach {
+        resolutionStrategy {
+            force("androidx.core:core-ktx:${libs.versions.androidxCore.get()}")
+            force("androidx.core:core:${libs.versions.androidxCore.get()}")
+        }
+    }
+}

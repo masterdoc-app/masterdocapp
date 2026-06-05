@@ -25,10 +25,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        permissions: Array<out String?>,
+        permissions: Array<out String>,
         grantResults: IntArray,
+        deviceId: Int,
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
         Kodio.onRequestPermissionsResult(requestCode, grantResults)
     }
 }

@@ -166,6 +166,9 @@ configurations.all {
         force("androidx.activity:activity-compose:${libs.versions.activityCompose.get()}")
         force("androidx.activity:activity-ktx:${libs.versions.activityCompose.get()}")
         force("androidx.activity:activity:${libs.versions.activityCompose.get()}")
+        // Kodio pulls androidx.core 1.17 (needs compileSdk 36 + AGP 8.9); stay on compileSdk 35.
+        force("androidx.core:core-ktx:${libs.versions.androidxCore.get()}")
+        force("androidx.core:core:${libs.versions.androidxCore.get()}")
     }
 }
 

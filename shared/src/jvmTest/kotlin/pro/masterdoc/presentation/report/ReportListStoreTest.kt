@@ -77,7 +77,7 @@ class ReportListStoreTest {
         createdAt = "2026-06-03T10:00:00",
         assistantId = 1,
         conversationId = null,
-        result = "Результат $id",
+        result = "Подробный результат отчёта $id для базы знаний",
         transcript = emptyList(),
     )
 }

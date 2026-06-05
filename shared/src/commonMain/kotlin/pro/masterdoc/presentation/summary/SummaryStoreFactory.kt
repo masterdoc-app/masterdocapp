@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import pro.masterdoc.data.casereport.CaseReportsRepository
 import pro.masterdoc.domain.case.CaseReportSubmitRequest
 import pro.masterdoc.domain.case.TranscriptTurn
+import pro.masterdoc.domain.case.isValidCaseReportResult
 
 class SummaryStoreFactory(
     private val storeFactory: StoreFactory,
@@ -70,7 +71,11 @@ private class SummaryExecutor(
         val id = assistantId
         when {
             id == null -> dispatch(SummaryMsg.SubmitFailed("Сначала выберите станцию"))
-            report.length < 3 -> dispatch(SummaryMsg.SubmitFailed("Напишите отчёт (минимум 3 символа)"))
+            !report.isValidCaseReportResult() -> dispatch(
+                SummaryMsg.SubmitFailed(
+                    "Напишите отчёт (больше 20 символов, сейчас ${report.length})",
+                ),
+            )
             else -> {
                 dispatch(SummaryMsg.Submitting)
                 scope.launch {

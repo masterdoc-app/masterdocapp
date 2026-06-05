@@ -124,7 +124,10 @@ fun ScanScreenContent(
                         cameraError = null
                         imagePickers.openCamera()
                     },
-                    onListClick = { showEquipmentList = true },
+                    onListClick = {
+                        equipmentStore.accept(EquipmentSelectionStore.Intent.Load)
+                        showEquipmentList = true
+                    },
                 )
             }
         }

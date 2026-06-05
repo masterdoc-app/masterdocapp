@@ -16,6 +16,8 @@ interface EquipmentSelectionStore :
     )
 
     sealed interface Intent {
+        /** Fetch assistants when the user opens the equipment list (not on app start). */
+        data object Load : Intent
         data object RetryLoad : Intent
         data class Select(val assistant: Assistant) : Intent
         data object ClearSelection : Intent

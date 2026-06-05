@@ -22,6 +22,7 @@ import pro.masterdoc.app.ui.theme.LiteFieldShape
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocPrimaryButton
 import pro.masterdoc.app.ui.theme.MasterdocTestTags
+import pro.masterdoc.domain.case.isValidCaseReportResult
 import pro.masterdoc.presentation.root.RootComponent
 import pro.masterdoc.presentation.summary.SummaryStore
 
@@ -32,7 +33,7 @@ fun SummaryScreenContent(
 ) {
     val menu = rememberLiteFlowMenuState(root)
     val state by summary.states.collectAsState(initial = summary.state)
-    val canSubmit = state.report.trim().length >= 3
+    val canSubmit = state.report.isValidCaseReportResult()
 
     LaunchedEffect(state.isSubmitted) {
         if (state.isSubmitted) {

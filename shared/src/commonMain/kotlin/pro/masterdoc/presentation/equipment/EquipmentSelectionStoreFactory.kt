@@ -1,7 +1,6 @@
 package pro.masterdoc.presentation.equipment
 
 import com.arkivanov.mvikotlin.core.store.Reducer
-import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import kotlinx.coroutines.launch
@@ -20,14 +19,9 @@ class EquipmentSelectionStoreFactory(
             > by storeFactory.create(
             name = "EquipmentSelectionStore",
             initialState = EquipmentSelectionStore.State(),
-            bootstrapper = SimpleBootstrapper(Action.Load),
             executorFactory = { Executor(repository) },
             reducer = ReducerImpl,
         ) {}
-}
-
-private sealed interface Action {
-    data object Load : Action
 }
 
 private sealed interface Msg {
@@ -54,21 +48,17 @@ private class Executor(
     private val repository: AssistantsRepository,
 ) : CoroutineExecutor<
     EquipmentSelectionStore.Intent,
-    Action,
+    Nothing,
     EquipmentSelectionStore.State,
     Msg,
     EquipmentSelectionStore.Label,
     >() {
 
-    override fun executeAction(action: Action) {
-        when (action) {
-            Action.Load -> load()
-        }
-    }
-
     override fun executeIntent(intent: EquipmentSelectionStore.Intent) {
         when (intent) {
-            EquipmentSelectionStore.Intent.RetryLoad -> load()
+            EquipmentSelectionStore.Intent.Load,
+            EquipmentSelectionStore.Intent.RetryLoad,
+            -> load()
             is EquipmentSelectionStore.Intent.Select -> dispatch(Msg.Selected(intent.assistant))
             EquipmentSelectionStore.Intent.ClearSelection -> dispatch(Msg.Selected(null))
             EquipmentSelectionStore.Intent.ClearDetectError -> dispatch(Msg.SetDetectError(null))
@@ -80,6 +70,24 @@ private class Executor(
         dispatch(Msg.SetDetectError(null))
         dispatch(Msg.SetDetecting(true))
         scope.launch {
+            var assistants = state().assistants
+            if (assistants.isEmpty()) {
+                repository.listAssistants()
+                    .onFailure { error ->
+                        dispatch(Msg.SetDetecting(false))
+                        dispatch(
+                            Msg.SetDetectError(
+                                error.message?.takeIf { it.isNotBlank() }
+                                    ?: "Не удалось загрузить список станций",
+                            ),
+                        )
+                        return@launch
+                    }
+                    .onSuccess { loaded ->
+                        dispatch(Msg.Loaded(loaded))
+                        assistants = loaded
+                    }
+            }
             repository.detectAssistant(
                 imageBytes = intent.imageBytes,
                 fileName = intent.fileName,
@@ -123,6 +131,7 @@ private class Executor(
     }
 
     private fun load() {
+        if (state().isLoading || state().assistants.isNotEmpty()) return
         dispatch(Msg.SetLoading(true))
         dispatch(Msg.SetError(null))
         scope.launch {

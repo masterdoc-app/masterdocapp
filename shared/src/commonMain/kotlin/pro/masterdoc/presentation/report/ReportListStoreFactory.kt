@@ -6,6 +6,7 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import kotlinx.coroutines.launch
 import pro.masterdoc.data.casereport.CaseReportsRepository
 import pro.masterdoc.domain.case.CaseReport
+import pro.masterdoc.domain.case.filterValidCaseReports
 
 class ReportListStoreFactory(
     private val storeFactory: StoreFactory,
@@ -79,9 +80,10 @@ private class ReportListExecutor(
         scope.launch {
             repository.list(assistantId = assistantId, page = page, size = PAGE_SIZE)
                 .onSuccess { pageResult ->
+                    val items = pageResult.items.filterValidCaseReports()
                     dispatch(
                         Msg.Loaded(
-                            items = pageResult.items,
+                            items = items,
                             page = pageResult.page,
                             hasMore = pageResult.hasMore,
                             append = append,

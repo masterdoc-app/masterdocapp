@@ -169,9 +169,80 @@
         body.masterdoc-camera-open #masterdoc-scan-shutter {
             display: none !important;
         }
+        #masterdoc-boot-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: #FBF8F3;
+            transition: opacity 0.28s ease, visibility 0.28s ease;
+        }
+        #masterdoc-boot-loader.masterdoc-boot-loader--hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .masterdoc-boot-loader__card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            max-width: 280px;
+            text-align: center;
+        }
+        .masterdoc-boot-loader__logo {
+            width: 56px;
+            height: 56px;
+            opacity: 0.92;
+        }
+        .masterdoc-boot-loader__title {
+            color: #1A1814;
+            font: 600 22px/1.1 "IBM Plex Sans", system-ui, sans-serif;
+            letter-spacing: -0.02em;
+        }
+        .masterdoc-boot-loader__spinner {
+            width: 32px;
+            height: 32px;
+            border: 2.5px solid #EAE3D4;
+            border-top-color: #C2410C;
+            border-radius: 50%;
+            animation: masterdoc-boot-spin 0.85s linear infinite;
+        }
+        .masterdoc-boot-loader__hint {
+            color: #6B665C;
+            font: 500 12px/1.4 "IBM Plex Sans", system-ui, sans-serif;
+        }
+        .masterdoc-boot-loader__mono {
+            color: #C2410C;
+            font: 600 10px/1.2 "JetBrains Mono", monospace;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        @keyframes masterdoc-boot-spin {
+            to { transform: rotate(360deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .masterdoc-boot-loader__spinner {
+                animation: none;
+                border-top-color: #C2410C;
+                opacity: 0.75;
+            }
+        }
     </style>
 </head>
 <body>
+<div id="masterdoc-boot-loader" aria-live="polite" aria-busy="true">
+    <div class="masterdoc-boot-loader__card">
+        <img class="masterdoc-boot-loader__logo" src="assets/logo-mark.svg" width="56" height="56" alt="">
+        <div class="masterdoc-boot-loader__title">Masterdoc</div>
+        <div class="masterdoc-boot-loader__spinner" role="progressbar" aria-label="Загрузка приложения"></div>
+        <div class="masterdoc-boot-loader__mono">Загрузка</div>
+        <div class="masterdoc-boot-loader__hint">Подготавливаем интерфейс…</div>
+    </div>
+</div>
 <div id="masterdoc-compose-root"></div>
 <button id="masterdoc-scan-shutter" type="button" hidden aria-label="Сканировать камерой"></button>
 <script>
@@ -194,13 +265,36 @@
 <script>
     // composeApp.js is an async webpack bundle; globalThis.composeApp is a Promise.
     (function () {
+        var loader = document.getElementById("masterdoc-boot-loader");
+        var loaderHidden = false;
+
+        function hideBootLoader() {
+            if (!loader || loaderHidden) return;
+            loaderHidden = true;
+            loader.classList.add("masterdoc-boot-loader--hidden");
+            loader.setAttribute("aria-busy", "false");
+            window.setTimeout(function () {
+                if (loader.parentNode) loader.parentNode.removeChild(loader);
+            }, 320);
+        }
+
+        function showBootError(detail) {
+            hideBootLoader();
+            var el = document.createElement("pre");
+            el.style.cssText = "color:#b91c1c;padding:16px;font:14px/1.4 system-ui;white-space:pre-wrap";
+            el.textContent = "Ошибка загрузки приложения. Пересоберите web: bash scripts/run-web.sh\n\n" + detail;
+            document.body.appendChild(el);
+        }
+
         var boot = globalThis.composeApp;
         if (!boot || typeof boot.then !== "function") {
             console.error("[masterdoc] composeApp.js did not register globalThis.composeApp");
+            showBootError("composeApp.js не зарегистрировал globalThis.composeApp");
             return;
         }
         boot.then(function () {
             console.info("[masterdoc] wasm ready");
+            hideBootLoader();
         }).catch(function (err) {
             console.error("[masterdoc] wasm boot failed", err);
             var detail = window.__masterdocLastKotlinError || "";
@@ -214,10 +308,7 @@
                 } catch (ignore) {}
             }
             if (!detail) detail = String(err);
-            var el = document.createElement("pre");
-            el.style.cssText = "color:#b91c1c;padding:16px;font:14px/1.4 system-ui;white-space:pre-wrap";
-            el.textContent = "Ошибка загрузки приложения. Пересоберите web: bash scripts/run-web.sh\n\n" + detail;
-            document.body.appendChild(el);
+            showBootError(detail);
         });
     })();
 </script>

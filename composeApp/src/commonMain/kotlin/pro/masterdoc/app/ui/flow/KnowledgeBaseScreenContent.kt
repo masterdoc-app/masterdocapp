@@ -25,9 +25,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.mvikotlin.extensions.coroutines.states
+import pro.masterdoc.app.ui.chat.ChatRoleMessageBubble
 import pro.masterdoc.app.ui.theme.LiteAppHead
 import pro.masterdoc.app.ui.theme.LiteOptionShape
 import pro.masterdoc.app.ui.theme.MasterdocDimens
@@ -36,6 +36,7 @@ import pro.masterdoc.app.ui.theme.MasterdocTestTags
 import pro.masterdoc.app.ui.theme.masterdocConvoBackground
 import pro.masterdoc.app.ui.theme.masterdocReportDateLabel
 import pro.masterdoc.domain.case.CaseReport
+import pro.masterdoc.domain.chat.toChatMessages
 import pro.masterdoc.presentation.report.ReportListStore
 import pro.masterdoc.presentation.root.RootComponent
 
@@ -146,7 +147,7 @@ fun KnowledgeBaseScreenContent(
 
 @Composable
 private fun KnowledgeBaseReportCard(report: CaseReport) {
-    val preview = report.result.lineSequence().firstOrNull()?.trim().orEmpty().ifBlank { report.result }
+    val transcriptMessages = report.transcript.toChatMessages()
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = LiteOptionShape,
@@ -155,19 +156,37 @@ private fun KnowledgeBaseReportCard(report: CaseReport) {
     ) {
         Column(
             modifier = Modifier.padding(MasterdocDimens.Space14),
-            verticalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8),
+            verticalArrangement = Arrangement.spacedBy(MasterdocDimens.Space10),
         ) {
             Text(
-                text = preview,
+                text = "РЕЗУЛЬТАТ",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = report.result.trim(),
                 style = MaterialTheme.typography.bodyLarge,
-                maxLines = 4,
-                overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = masterdocReportDateLabel(report.createdAt),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (transcriptMessages.isNotEmpty()) {
+                Text(
+                    text = "ПЕРЕПИСКА",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8)) {
+                    transcriptMessages.forEach { message ->
+                        ChatRoleMessageBubble(
+                            role = message.role,
+                            content = message.content,
+                        )
+                    }
+                }
+            }
         }
     }
 }

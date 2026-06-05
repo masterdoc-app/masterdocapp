@@ -30,3 +30,32 @@ fun List<ChatMessage>.toTranscriptTurns(): List<TranscriptTurn> {
     }
     return turns.filter { it.ask.isNotBlank() || it.answer.isNotBlank() }
 }
+
+/** Expands stored transcript turns into ordered user/assistant messages for read-only display. */
+fun List<TranscriptTurn>.toChatMessages(): List<ChatMessage> {
+    val messages = mutableListOf<ChatMessage>()
+    var index = 0
+    for (turn in this) {
+        if (turn.ask.isNotBlank()) {
+            messages.add(
+                ChatMessage(
+                    id = "transcript-$index",
+                    role = ChatRole.User,
+                    content = turn.ask.trim(),
+                ),
+            )
+            index++
+        }
+        if (turn.answer.isNotBlank()) {
+            messages.add(
+                ChatMessage(
+                    id = "transcript-$index",
+                    role = ChatRole.Assistant,
+                    content = turn.answer.trim(),
+                ),
+            )
+            index++
+        }
+    }
+    return messages
+}

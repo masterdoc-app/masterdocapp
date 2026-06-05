@@ -86,6 +86,10 @@ class KnowledgeBaseScreenTest {
 
         onNodeWithTag(MasterdocTestTags.KNOWLEDGE_BASE_HEAD).assertIsDisplayed()
         onNodeWithText("Холодильник не включается", substring = true).assertIsDisplayed()
+        onNodeWithText("ПЕРЕПИСКА").assertIsDisplayed()
+        onNodeWithText("Не включается").assertIsDisplayed()
+        onNodeWithText("Проверьте питание и реле", substring = true).assertIsDisplayed()
+        onNodeWithText("MASTERDOC").assertIsDisplayed()
 
         saveGoldenScreenshot("knowledge_base_list.png")
         assertTrue(goldenScreenshotFile("knowledge_base_list.png").exists())

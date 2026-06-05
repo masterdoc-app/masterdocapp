@@ -1,5 +1,6 @@
 package pro.masterdoc.domain.chat
 
+import pro.masterdoc.domain.case.TranscriptTurn
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -19,5 +20,20 @@ class ChatTranscriptTest {
         assertEquals("Проверьте датчик", turns[0].answer)
         assertEquals("Заменили", turns[1].ask)
         assertEquals("Ок", turns[1].answer)
+    }
+
+    @Test
+    fun toChatMessages_expandsTranscriptByRole() {
+        val messages = listOf(
+            TranscriptTurn(ask = "на экране ошибка 14", answer = "Ошибка 14 обычно — таймаут датчика."),
+            TranscriptTurn(ask = "сброс не помог", answer = "Проверьте датчик приближения."),
+        ).toChatMessages()
+
+        assertEquals(4, messages.size)
+        assertEquals(ChatRole.User, messages[0].role)
+        assertEquals("на экране ошибка 14", messages[0].content)
+        assertEquals(ChatRole.Assistant, messages[1].role)
+        assertEquals(ChatRole.User, messages[2].role)
+        assertEquals(ChatRole.Assistant, messages[3].role)
     }
 }

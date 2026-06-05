@@ -101,6 +101,15 @@ class KnowledgeBaseScreenTest {
         )
         root.onEquipmentReady()
         root.onOpenKnowledgeBase()
+        waitForKnowledgeBaseChild(root)
+    }
+
+    private fun waitForKnowledgeBaseChild(root: pro.masterdoc.presentation.root.DefaultRootComponent) {
+        val deadline = System.currentTimeMillis() + 5_000
+        while (System.currentTimeMillis() < deadline) {
+            if (root.stack.value.active.instance is FlowChild.KnowledgeBase) return
+            Thread.sleep(50)
+        }
         assertIs<FlowChild.KnowledgeBase>(root.stack.value.active.instance)
     }
 

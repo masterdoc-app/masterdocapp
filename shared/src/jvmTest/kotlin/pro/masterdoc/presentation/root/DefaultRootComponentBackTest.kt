@@ -82,15 +82,15 @@ class DefaultRootComponentBackTest {
     }
 
     @Test
-    fun onBack_fromFrequentIssues_returnsToPreviousScreen() {
+    fun onBack_fromKnowledgeBase_returnsToPreviousScreen() {
         val root = createRoot()
         root.chat.equipmentStore.accept(
             EquipmentSelectionStore.Intent.Select(Assistant(id = 1, name = "Холодильники")),
         )
         root.onEquipmentReady()
-        root.onOpenFrequentIssues()
+        root.onOpenKnowledgeBase()
 
-        assertIs<FlowChild.FrequentIssues>(root.stack.value.active.instance)
+        assertIs<FlowChild.KnowledgeBase>(root.stack.value.active.instance)
 
         root.onBack()
 

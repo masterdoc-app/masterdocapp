@@ -40,11 +40,12 @@ fun rememberLiteFlowMenuState(root: RootComponent): LiteFlowMenuState {
         expanded = expanded,
         onDismiss = { expanded = false },
         onOpen = { expanded = true },
-        onOpenFrequentIssues = {
+        onOpenKnowledgeBase = {
             expanded = false
-            root.onOpenFrequentIssues()
+            root.onOpenKnowledgeBase()
         },
-        showMenu = hasAssistant && active !is FlowChild.FrequentIssues,
+        canOpenKnowledgeBase = hasAssistant,
+        showMenu = active !is FlowChild.KnowledgeBase,
     )
 }
 
@@ -52,8 +53,9 @@ data class LiteFlowMenuState(
     val expanded: Boolean,
     val onDismiss: () -> Unit,
     val onOpen: () -> Unit,
-    val onOpenFrequentIssues: () -> Unit,
-    /** Three-dot menu is shown when a station is selected and not on the frequent-issues screen. */
+    val onOpenKnowledgeBase: () -> Unit,
+    val canOpenKnowledgeBase: Boolean,
+    /** Three-dot menu in the top bar (hidden on the knowledge-base screen itself). */
     val showMenu: Boolean,
 )
 
@@ -70,8 +72,9 @@ fun LiteFlowMenuAnchor(
             onDismissRequest = state.onDismiss,
         ) {
             DropdownMenuItem(
-                text = { Text("Частые неисправности") },
-                onClick = state.onOpenFrequentIssues,
+                text = { Text("База знаний") },
+                onClick = state.onOpenKnowledgeBase,
+                enabled = state.canOpenKnowledgeBase,
             )
         }
     }

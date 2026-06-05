@@ -29,10 +29,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.mvikotlin.extensions.coroutines.states
 import pro.masterdoc.app.ui.theme.LiteAppHead
-import pro.masterdoc.app.ui.theme.MasterdocTestTags
 import pro.masterdoc.app.ui.theme.LiteOptionShape
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocLoadingIndicator
+import pro.masterdoc.app.ui.theme.MasterdocTestTags
 import pro.masterdoc.app.ui.theme.masterdocConvoBackground
 import pro.masterdoc.app.ui.theme.masterdocReportDateLabel
 import pro.masterdoc.domain.case.CaseReport
@@ -40,7 +40,7 @@ import pro.masterdoc.presentation.report.ReportListStore
 import pro.masterdoc.presentation.root.RootComponent
 
 @Composable
-fun FrequentIssuesScreenContent(
+fun KnowledgeBaseScreenContent(
     root: RootComponent,
     reportList: ReportListStore,
 ) {
@@ -65,13 +65,13 @@ fun FrequentIssuesScreenContent(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .testTag(MasterdocTestTags.FREQUENT_ISSUES_SCREEN),
+            .testTag(MasterdocTestTags.KNOWLEDGE_BASE_SCREEN),
     ) {
         LiteAppHead(
             title = state.assistantName?.let { "Masterdoc · $it" } ?: "Masterdoc",
-            subtitle = "Частые неисправности",
+            subtitle = "База знаний",
             onBack = root::onBack,
-            modifier = Modifier.testTag(MasterdocTestTags.FREQUENT_ISSUES_HEAD),
+            modifier = Modifier.testTag(MasterdocTestTags.KNOWLEDGE_BASE_HEAD),
         )
 
         state.error?.let { error ->
@@ -104,7 +104,7 @@ fun FrequentIssuesScreenContent(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "Пока нет записей о неисправностях",
+                        text = "Пока нет записей в базе знаний",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -124,7 +124,7 @@ fun FrequentIssuesScreenContent(
                     verticalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8),
                 ) {
                     items(state.items, key = { it.id }) { report ->
-                        FrequentIssueCard(report = report)
+                        KnowledgeBaseReportCard(report = report)
                     }
                     if (state.isLoadingMore) {
                         item("loading-more") {
@@ -145,7 +145,7 @@ fun FrequentIssuesScreenContent(
 }
 
 @Composable
-private fun FrequentIssueCard(report: CaseReport) {
+private fun KnowledgeBaseReportCard(report: CaseReport) {
     val preview = report.result.lineSequence().firstOrNull()?.trim().orEmpty().ifBlank { report.result }
     Surface(
         modifier = Modifier.fillMaxWidth(),

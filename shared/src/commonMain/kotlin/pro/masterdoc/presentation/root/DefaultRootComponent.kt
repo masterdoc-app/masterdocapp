@@ -41,7 +41,7 @@ class DefaultRootComponent(
                 FlowConfig.Camera -> FlowChild.Camera
                 FlowConfig.ChatDescribe -> FlowChild.ChatDescribe
                 FlowConfig.Summary -> FlowChild.Summary
-                FlowConfig.FrequentIssues -> FlowChild.FrequentIssues
+                FlowConfig.KnowledgeBase -> FlowChild.KnowledgeBase
             }
         }
 
@@ -83,11 +83,11 @@ class DefaultRootComponent(
     }
 
     @OptIn(DelicateDecomposeApi::class)
-    override fun onOpenFrequentIssues() {
+    override fun onOpenKnowledgeBase() {
         val selected = chat.equipmentStore.state.selectedAssistant ?: return
         reportList.accept(ReportListIntent.BindAssistant(selected.id, selected.name))
         reportList.accept(ReportListIntent.Load)
-        navigation.push(FlowConfig.FrequentIssues)
+        navigation.push(FlowConfig.KnowledgeBase)
     }
 
     private fun prefillSummaryFromSession() {

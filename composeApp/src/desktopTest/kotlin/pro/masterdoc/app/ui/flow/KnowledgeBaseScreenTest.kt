@@ -3,10 +3,10 @@ package pro.masterdoc.app.ui.flow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.runComposeUiTest
 import kotlinx.coroutines.runBlocking
 import pro.masterdoc.app.test.TestRootFactory
@@ -27,12 +27,12 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
-class FrequentIssuesScreenTest {
+class KnowledgeBaseScreenTest {
 
     @Test
-    fun frequentIssues_emptyState_rendersAndMatchesGoldenScreenshot() = runComposeUiTest {
+    fun knowledgeBase_emptyState_rendersAndMatchesGoldenScreenshot() = runComposeUiTest {
         val root = TestRootFactory.create()
-        navigateToFrequentIssues(root)
+        navigateToKnowledgeBase(root)
 
         setContent {
             MasterdocTheme {
@@ -40,16 +40,16 @@ class FrequentIssuesScreenTest {
             }
         }
 
-        waitForFrequentIssuesScreen()
-        onNodeWithTag(MasterdocTestTags.FREQUENT_ISSUES_HEAD).assertIsDisplayed()
-        onNodeWithText("Пока нет записей о неисправностях").assertIsDisplayed()
+        waitForKnowledgeBaseScreen()
+        onNodeWithTag(MasterdocTestTags.KNOWLEDGE_BASE_HEAD).assertIsDisplayed()
+        onNodeWithText("Пока нет записей в базе знаний").assertIsDisplayed()
 
-        saveGoldenScreenshot("frequent_issues_empty.png")
-        assertTrue(goldenScreenshotFile("frequent_issues_empty.png").exists())
+        saveGoldenScreenshot("knowledge_base_empty.png")
+        assertTrue(goldenScreenshotFile("knowledge_base_empty.png").exists())
     }
 
     @Test
-    fun frequentIssues_withReports_rendersAndMatchesGoldenScreenshot() = runComposeUiTest {
+    fun knowledgeBase_withReports_rendersAndMatchesGoldenScreenshot() = runComposeUiTest {
         val caseReports = LoggingCaseReportsRepository()
         runBlocking {
             caseReports.submit(
@@ -73,7 +73,7 @@ class FrequentIssuesScreenTest {
         }
 
         val root = TestRootFactory.create(caseReportsRepository = caseReports)
-        navigateToFrequentIssues(root)
+        navigateToKnowledgeBase(root)
 
         setContent {
             MasterdocTheme {
@@ -82,35 +82,35 @@ class FrequentIssuesScreenTest {
         }
 
         waitForReportList(root.reportList)
-        waitForFrequentIssuesScreen()
+        waitForKnowledgeBaseScreen()
 
-        onNodeWithTag(MasterdocTestTags.FREQUENT_ISSUES_HEAD).assertIsDisplayed()
+        onNodeWithTag(MasterdocTestTags.KNOWLEDGE_BASE_HEAD).assertIsDisplayed()
         onNodeWithText("Холодильник не включается", substring = true).assertIsDisplayed()
 
-        saveGoldenScreenshot("frequent_issues_list.png")
-        assertTrue(goldenScreenshotFile("frequent_issues_list.png").exists())
+        saveGoldenScreenshot("knowledge_base_list.png")
+        assertTrue(goldenScreenshotFile("knowledge_base_list.png").exists())
     }
 
-    private fun navigateToFrequentIssues(root: pro.masterdoc.presentation.root.DefaultRootComponent) {
+    private fun navigateToKnowledgeBase(root: pro.masterdoc.presentation.root.DefaultRootComponent) {
         root.chat.equipmentStore.accept(
             EquipmentSelectionStore.Intent.Select(Assistant(id = 1, name = "Холодильники")),
         )
         root.onEquipmentReady()
-        root.onOpenFrequentIssues()
-        assertIs<FlowChild.FrequentIssues>(root.stack.value.active.instance)
+        root.onOpenKnowledgeBase()
+        assertIs<FlowChild.KnowledgeBase>(root.stack.value.active.instance)
     }
 
-    private fun ComposeUiTest.waitForFrequentIssuesScreen() {
+    private fun ComposeUiTest.waitForKnowledgeBaseScreen() {
         val deadline = System.currentTimeMillis() + 5_000
         while (System.currentTimeMillis() < deadline) {
             try {
-                onNodeWithTag(MasterdocTestTags.FREQUENT_ISSUES_SCREEN).assertIsDisplayed()
+                onNodeWithTag(MasterdocTestTags.KNOWLEDGE_BASE_SCREEN).assertIsDisplayed()
                 return
             } catch (_: AssertionError) {
                 Thread.sleep(50)
             }
         }
-        onNodeWithTag(MasterdocTestTags.FREQUENT_ISSUES_SCREEN).assertIsDisplayed()
+        onNodeWithTag(MasterdocTestTags.KNOWLEDGE_BASE_SCREEN).assertIsDisplayed()
     }
 
     private fun waitForReportList(reportList: ReportListStore) {

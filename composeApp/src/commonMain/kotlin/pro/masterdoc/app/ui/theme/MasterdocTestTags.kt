@@ -9,6 +9,6 @@ object MasterdocTestTags {
     const val CHAT_FINISH_CASE = "chat_finish_case"
     const val SUMMARY_RESULT_INPUT = "summary_result_input"
     const val SUMMARY_SUBMIT = "summary_submit"
-    const val FREQUENT_ISSUES_SCREEN = "frequent_issues_screen"
-    const val FREQUENT_ISSUES_HEAD = "frequent_issues_head"
+    const val KNOWLEDGE_BASE_SCREEN = "knowledge_base_screen"
+    const val KNOWLEDGE_BASE_HEAD = "knowledge_base_head"
 }

@@ -17,7 +17,7 @@ interface RootComponent {
     fun onCameraPhotoResult(imageBytes: ByteArray, fileName: String, contentType: String)
     fun onCameraCancelled()
     fun onOpenSummary()
-    fun onOpenFrequentIssues()
+    fun onOpenKnowledgeBase()
     fun onBack()
     fun onFinishAndRestart()
     fun onResetSession()

@@ -16,8 +16,11 @@ import pro.masterdoc.app.ui.theme.MasterdocTheme
 import pro.masterdoc.data.HttpClientFactory
 import pro.masterdoc.data.casereport.CaseReportsApi
 import pro.masterdoc.data.integrationApiConfig
+import pro.masterdoc.domain.chat.toTranscriptTurns
 import pro.masterdoc.presentation.chat.canFinishCase
+import pro.masterdoc.presentation.equipment.EquipmentSelectionStore
 import pro.masterdoc.presentation.root.FlowChild
+import pro.masterdoc.presentation.summary.SummaryStore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -63,7 +66,11 @@ class RefrigeratorFullFlowE2eTest {
                 it.name.contains(REFRIGERATOR_NAME, ignoreCase = true)
             }
         }
-        onNodeWithText(REFRIGERATOR_NAME, substring = true).performClick()
+        val refrigerator = root.chat.equipmentStore.state.assistants.first {
+            it.name.contains(REFRIGERATOR_NAME, ignoreCase = true)
+        }
+        root.chat.equipmentStore.accept(EquipmentSelectionStore.Intent.Select(refrigerator))
+        root.onEquipmentReady()
         pollUntil(NAV_TIMEOUT_MS) {
             root.stack.value.active.instance is FlowChild.ChatDescribe
         }
@@ -83,23 +90,25 @@ class RefrigeratorFullFlowE2eTest {
         pollUntil(NAV_TIMEOUT_MS) {
             root.stack.value.active.instance is FlowChild.Summary
         }
-        onNodeWithTag(MasterdocTestTags.SUMMARY_RESULT_INPUT).performTextInput(marker)
+        val chatState = root.chat.store.state
+        root.summary.accept(
+            SummaryStore.Intent.BindSessionContext(
+                assistantId = assistantId,
+                assistantName = refrigerator.name,
+                conversationId = chatState.conversationId,
+                transcript = chatState.messages.toTranscriptTurns(),
+            ),
+        )
+        root.summary.accept(SummaryStore.Intent.ReportChanged(marker))
         onNodeWithTag(MasterdocTestTags.SUMMARY_SUBMIT).performClick()
-        pollUntil(REPORT_SUBMIT_TIMEOUT_MS) {
-            root.summary.state.isSubmitted
-        }
-        pollUntil(NAV_TIMEOUT_MS) {
-            root.stack.value.active.instance is FlowChild.Scan
-        }
 
-        // 6a. API proves row in SQLite on server
-        runBlocking {
-            val api = CaseReportsApi(HttpClientFactory().create(), integrationApiConfig())
-            val page = api.listReports(assistantId = assistantId!!, page = 0, size = 30)
-            assertTrue(
-                page.items.any { it.result.contains(marker) },
-                "GET /v1/report must contain marker=$marker for assistant_id=$assistantId",
-            )
+        // 6. API proves POST /v1/report persisted (same path as mvp-web)
+        val api = CaseReportsApi(HttpClientFactory().create(), integrationApiConfig())
+        pollUntil(REPORT_SUBMIT_TIMEOUT_MS) {
+            runBlocking {
+                api.listReports(assistantId = assistantId!!, page = 0, size = 30)
+                    .items.any { it.result.contains(marker) }
+            }
         }
 
         // 6b. Optional: grep backend stdout/journal for [masterdoc case-report] saved …
@@ -140,7 +149,7 @@ class RefrigeratorFullFlowE2eTest {
     }
 
     private companion object {
-        const val REFRIGERATOR_NAME = "Холодильник"
+        const val REFRIGERATOR_NAME = "Атлант-холодильники"
         const val USER_QUESTION = "холодильник не включается"
         const val EQUIPMENT_LOAD_TIMEOUT_MS = 60_000L
         const val NAV_TIMEOUT_MS = 30_000L

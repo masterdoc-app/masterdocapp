@@ -1,5 +1,6 @@
 package pro.masterdoc.app.ui.flow
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.mvikotlin.extensions.coroutines.states
+import pro.masterdoc.app.ui.theme.LiteOptionShape
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.presentation.root.FlowChild
 import pro.masterdoc.presentation.root.RootComponent
@@ -70,6 +72,11 @@ fun LiteFlowMenuAnchor(
         DropdownMenu(
             expanded = state.expanded,
             onDismissRequest = state.onDismiss,
+            shape = LiteOptionShape,
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp,
+            shadowElevation = 4.dp,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         ) {
             DropdownMenuItem(
                 text = { Text("База знаний") },

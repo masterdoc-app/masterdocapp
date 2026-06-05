@@ -11,6 +11,7 @@ interface EquipmentSelectionStore :
         val isLoading: Boolean = false,
         val error: String? = null,
         val isDetecting: Boolean = false,
+        val detectProgress: String = "",
         val detectError: String? = null,
         val selectedAssistant: Assistant? = null,
     )

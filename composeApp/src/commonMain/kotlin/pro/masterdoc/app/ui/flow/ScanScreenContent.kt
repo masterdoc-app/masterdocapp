@@ -131,7 +131,10 @@ fun ScanScreenContent(
                 )
             }
         }
-        MasterdocDetectLoadingOverlay(visible = state.isDetecting)
+        MasterdocDetectLoadingOverlay(
+            visible = state.isDetecting,
+            hint = state.detectProgress,
+        )
     }
 }
 

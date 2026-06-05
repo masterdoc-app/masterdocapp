@@ -20,7 +20,10 @@ class ScanScreenDetectLoaderTest {
 
     @Test
     fun detectLoader_appears_whenIsDetecting_onScanScreen() = runComposeUiTest {
-        val state = EquipmentSelectionStore.State(isDetecting = true)
+        val state = EquipmentSelectionStore.State(
+            isDetecting = true,
+            detectProgress = "Ищем в базе знаний…",
+        )
 
         setContent {
             MasterdocTheme {
@@ -38,13 +41,17 @@ class ScanScreenDetectLoaderTest {
                             onListClick = {},
                         )
                     }
-                    MasterdocDetectLoadingOverlay(visible = state.isDetecting)
+                    MasterdocDetectLoadingOverlay(
+                        visible = state.isDetecting,
+                        hint = state.detectProgress,
+                    )
                 }
             }
         }
 
         onNodeWithTag(MasterdocTestTags.DETECT_LOADING_OVERLAY).assertIsDisplayed()
         onNodeWithTag(MasterdocTestTags.DETECT_LOADING_TITLE).assertIsDisplayed()
+        onNodeWithTag(MasterdocTestTags.DETECT_LOADING_HINT).assertIsDisplayed()
     }
 
     @Test
@@ -60,7 +67,10 @@ class ScanScreenDetectLoaderTest {
                         onCameraClick = {},
                         onListClick = {},
                     )
-                    MasterdocDetectLoadingOverlay(visible = state.isDetecting)
+                    MasterdocDetectLoadingOverlay(
+                        visible = state.isDetecting,
+                        hint = state.detectProgress,
+                    )
                 }
             }
         }

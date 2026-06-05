@@ -154,7 +154,10 @@ fun EquipmentSelectionContent(store: EquipmentSelectionStore) {
             }
         }
     }
-        MasterdocDetectLoadingOverlay(visible = state.isDetecting)
+        MasterdocDetectLoadingOverlay(
+            visible = state.isDetecting,
+            hint = state.detectProgress,
+        )
     }
 }
 

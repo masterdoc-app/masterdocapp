@@ -8,6 +8,8 @@ interface AssistantsRepository {
         imageBytes: ByteArray,
         fileName: String,
         contentType: String,
+        candidateNames: List<String> = emptyList(),
+        onProgress: suspend (String) -> Unit = {},
     ): Result<String?>
 }
 
@@ -21,8 +23,16 @@ class HttpAssistantsRepository(
         imageBytes: ByteArray,
         fileName: String,
         contentType: String,
+        candidateNames: List<String>,
+        onProgress: suspend (String) -> Unit,
     ): Result<String?> = runCatching {
-        api.detectAssistant(imageBytes, fileName, contentType)
+        api.detectAssistantStreaming(
+            imageBytes = imageBytes,
+            fileName = fileName,
+            contentType = contentType,
+            candidateNames = candidateNames,
+            onProgress = onProgress,
+        )
     }
 }
 
@@ -38,5 +48,10 @@ class MockAssistantsRepository : AssistantsRepository {
         imageBytes: ByteArray,
         fileName: String,
         contentType: String,
-    ): Result<String?> = Result.success("Холодильники")
+        candidateNames: List<String>,
+        onProgress: suspend (String) -> Unit,
+    ): Result<String?> {
+        onProgress("Смотрим на фото…")
+        return Result.success("Холодильники")
+    }
 }

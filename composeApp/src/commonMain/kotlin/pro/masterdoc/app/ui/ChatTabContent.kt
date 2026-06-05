@@ -20,8 +20,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,14 +34,12 @@ import com.arkivanov.mvikotlin.extensions.coroutines.states
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.lazy.LazyListState
 import pro.masterdoc.app.ui.chat.ChatAssistantTimeline
-import pro.masterdoc.app.ui.chat.masterdocChatInputKeys
+import pro.masterdoc.app.ui.chat.MasterdocChatInputField
 import pro.masterdoc.app.ui.chat.ChatMarkdownText
 import pro.masterdoc.app.ui.theme.AssistantMessageShape
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocLoadingIndicator
 import pro.masterdoc.app.ui.theme.MasterdocMessageSurface
-import pro.masterdoc.app.ui.theme.LiteFieldShape
-import pro.masterdoc.app.ui.theme.masterdocChatInputFieldColors
 import pro.masterdoc.app.ui.theme.UserMessageShape
 import pro.masterdoc.domain.chat.ChatMessageStatus
 import pro.masterdoc.domain.chat.ChatRole
@@ -265,27 +261,15 @@ private fun ChatInputBar(
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8),
         ) {
-            OutlinedTextField(
+            MasterdocChatInputField(
                 value = input,
                 onValueChange = onInputChange,
-                modifier = Modifier
-                    .weight(1f)
-                    .masterdocChatInputKeys(
-                        input = input,
-                        isSending = isSending,
-                        onInputChange = onInputChange,
-                        onSend = onSend,
-                    ),
-                placeholder = {
-                    Text(
-                        "Сообщение…",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                },
-                maxLines = 4,
+                modifier = Modifier.weight(1f),
                 enabled = !isSending,
-                shape = LiteFieldShape,
-                colors = masterdocChatInputFieldColors(),
+                isSending = isSending,
+                onSend = onSend,
+                placeholder = "Сообщение…",
+                maxLines = 4,
             )
             Button(
                 onClick = onSend,

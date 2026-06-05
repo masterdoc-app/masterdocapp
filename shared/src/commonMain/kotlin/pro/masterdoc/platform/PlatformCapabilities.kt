@@ -8,4 +8,6 @@ expect object PlatformCapabilities {
     val supportsCamera: Boolean
     val supportsFilePicker: Boolean
     val supportsMicrophone: Boolean
+    /** Enter sends message; Ctrl/Cmd+Enter inserts newline (desktop only). */
+    val supportsEnterToSend: Boolean
 }

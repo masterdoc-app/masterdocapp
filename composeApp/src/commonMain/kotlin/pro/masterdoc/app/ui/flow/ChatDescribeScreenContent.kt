@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,14 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.arkivanov.mvikotlin.extensions.coroutines.states
 import org.koin.mp.KoinPlatformTools
-import pro.masterdoc.app.ui.chat.masterdocChatInputKeys
+import pro.masterdoc.app.ui.chat.MasterdocChatInputField
 import pro.masterdoc.app.ui.theme.LiteAppHead
-import pro.masterdoc.app.ui.theme.LiteFieldShape
 import pro.masterdoc.app.ui.theme.MasterdocDimens
 import pro.masterdoc.app.ui.theme.MasterdocPrimaryButton
 import pro.masterdoc.app.ui.theme.MasterdocSecondaryButton
 import pro.masterdoc.app.ui.theme.MasterdocTestTags
-import pro.masterdoc.app.ui.theme.masterdocChatInputFieldColors
 import pro.masterdoc.data.voice.VoiceApi
 import pro.masterdoc.platform.PlatformCapabilities
 import pro.masterdoc.presentation.chat.ChatComponent
@@ -73,24 +69,18 @@ fun ChatDescribeScreenContent(
         )
 
         if (textMode) {
-            OutlinedTextField(
+            MasterdocChatInputField(
                 value = chatState.input,
                 onValueChange = { chat.store.accept(ChatStore.Intent.InputChanged(it)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = MasterdocDimens.Space14)
-                    .testTag(MasterdocTestTags.CHAT_DESCRIBE_INPUT)
-                    .masterdocChatInputKeys(
-                        input = chatState.input,
-                        isSending = chatState.isSending,
-                        onInputChange = { chat.store.accept(ChatStore.Intent.InputChanged(it)) },
-                        onSend = { chat.store.accept(ChatStore.Intent.SendClicked) },
-                    ),
-                placeholder = { Text("Опишите, что происходит…") },
+                    .testTag(MasterdocTestTags.CHAT_DESCRIBE_INPUT),
+                isSending = chatState.isSending,
+                onSend = { chat.store.accept(ChatStore.Intent.SendClicked) },
+                placeholder = "Опишите, что происходит…",
                 minLines = 2,
                 maxLines = 4,
-                shape = LiteFieldShape,
-                colors = masterdocChatInputFieldColors(),
             )
             MasterdocPrimaryButton(
                 text = if (chatState.isSending) "Отправляем…" else "Отправить",

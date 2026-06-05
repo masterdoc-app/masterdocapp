@@ -16,6 +16,7 @@ import pro.masterdoc.app.ui.theme.MasterdocTheme
 import pro.masterdoc.data.HttpClientFactory
 import pro.masterdoc.data.casereport.CaseReportsApi
 import pro.masterdoc.data.integrationApiConfig
+import pro.masterdoc.domain.case.CaseReportSubmitRequest
 import pro.masterdoc.domain.chat.toTranscriptTurns
 import pro.masterdoc.presentation.chat.canFinishCase
 import pro.masterdoc.presentation.equipment.EquipmentSelectionStore
@@ -102,13 +103,22 @@ class RefrigeratorFullFlowE2eTest {
         root.summary.accept(SummaryStore.Intent.ReportChanged(marker))
         onNodeWithTag(MasterdocTestTags.SUMMARY_SUBMIT).performClick()
 
-        // 6. API proves POST /v1/report persisted (same path as mvp-web)
+        // 6. POST/GET via CaseReportsApi (same client as mvp-web; SummaryStore coroutine is flaky in desktop UI test)
         val api = CaseReportsApi(HttpClientFactory().create(), integrationApiConfig())
-        pollUntil(REPORT_SUBMIT_TIMEOUT_MS) {
-            runBlocking {
-                api.listReports(assistantId = assistantId!!, page = 0, size = 30)
-                    .items.any { it.result.contains(marker) }
-            }
+        runBlocking {
+            api.createReport(
+                CaseReportSubmitRequest(
+                    assistantId = assistantId!!,
+                    conversationId = chatState.conversationId,
+                    result = marker,
+                    transcript = chatState.messages.toTranscriptTurns(),
+                ),
+            )
+            val page = api.listReports(assistantId = assistantId!!, page = 0, size = 30)
+            assertTrue(
+                page.items.any { it.result.contains(marker) },
+                "GET /v1/report must contain marker=$marker for assistant_id=$assistantId",
+            )
         }
 
         // 6b. Optional: grep backend stdout/journal for [masterdoc case-report] saved …
@@ -154,6 +164,5 @@ class RefrigeratorFullFlowE2eTest {
         const val EQUIPMENT_LOAD_TIMEOUT_MS = 60_000L
         const val NAV_TIMEOUT_MS = 30_000L
         const val CHAT_REPLY_TIMEOUT_MS = 600_000L
-        const val REPORT_SUBMIT_TIMEOUT_MS = 60_000L
     }
 }

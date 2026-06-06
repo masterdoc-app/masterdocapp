@@ -173,22 +173,26 @@ fun LiteAppHead(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8),
-            ) {
-                if (subtitleLive) {
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(MasterdocColors.Success, CircleShape),
-                    )
+            if (subtitle.isNotBlank() || subtitleLive) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(MasterdocDimens.Space8),
+                ) {
+                    if (subtitleLive) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .background(MasterdocColors.Success, CircleShape),
+                        )
+                    }
+                    if (subtitle.isNotBlank()) {
+                        MasterdocMonoLabel(
+                            text = subtitle,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
-                MasterdocMonoLabel(
-                    text = subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
         when {

@@ -54,10 +54,7 @@ fun ChatDescribeScreenContent(
     ) {
         LiteAppHead(
             title = stationTitle,
-            subtitle = when {
-                voiceBusy -> "Голос · распознаю"
-                else -> "Чат · подсказки Onyx"
-            },
+            subtitle = if (voiceBusy) "Голос · распознаю" else "",
             onBack = root::onBack,
             menuAnchor = liteFlowMenuAnchor(menu),
             subtitleLive = voiceBusy,

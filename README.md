@@ -53,9 +53,22 @@ http://api.masterdoc.pro/v1
 
 iOS: см. [iosApp/README.md](iosApp/README.md).
 
-## CI
+## CI и деплой Web
 
-На каждый push и PR — сборка всех платформ (см. [AGENTS.md](AGENTS.md)).
+- На каждый push и PR — сборка всех платформ (workflow **CI**, см. [AGENTS.md](AGENTS.md)).
+- Push в **`trunk`** — деплой Wasm на **https://copilot.masterdoc.pro** (VPS `91.207.75.72`, workflow **Deploy Web to VPS**).
+
+Секреты GitHub (`Settings` → `Secrets and variables` → `Actions`):
+
+| Секрет | Обязательный | Описание |
+|--------|--------------|----------|
+| `DEPLOY_SSH_PRIVATE_KEY` | да | SSH-ключ (ed25519), публичная часть в `authorized_keys` на VPS |
+| `DEPLOY_USER` | да | Пользователь SSH, например `root` |
+| `CERTBOT_EMAIL` | нет | Email для Let's Encrypt; по умолчанию `admin@masterdoc.pro` |
+
+Smoke после деплоя: `./scripts/smoke-copilot-web.sh`
+
+Переключение DNS с GitHub Pages: [deploy/DNS_CUTOVER.md](deploy/DNS_CUTOVER.md).
 
 ## Связанные репозитории
 

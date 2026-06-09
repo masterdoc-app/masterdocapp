@@ -36,6 +36,16 @@
 
 **Не мержить PR**, пока CI не прошёл. **Не считать задачу выполненной**, пока не проверены статусы CI на push.
 
+## Web-деплой (ветка trunk)
+
+Push в **`trunk`** запускает workflow **Deploy Web to VPS** → `https://copilot.masterdoc.pro` (статика на VPS `91.207.75.72`, nginx).
+
+1. Дождаться зелёного **Deploy Web to VPS** в Actions.
+2. Smoke (локально или на CI): `./scripts/smoke-copilot-web.sh https://copilot.masterdoc.pro`
+3. DNS: см. [deploy/DNS_CUTOVER.md](deploy/DNS_CUTOVER.md) — A-запись `91.207.75.72`, не GitHub Pages.
+
+Секреты: `DEPLOY_SSH_PRIVATE_KEY`, `DEPLOY_USER` (те же, что у lite/toir на том же VPS).
+
 ## API (обязательно)
 
 **Всегда** работаем с продакшен API:

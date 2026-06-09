@@ -9,7 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 /**
- * POST/GET /v1/report against live API (same [CaseReportsApi] as mvp-web after wasm JSON fix).
+ * POST/GET /v1/report against live API (same [CaseReportsApi] as copilot web after wasm JSON fix).
  *
  * ```bash
  * export MASTERDOC_INTEGRATION=1

@@ -103,7 +103,7 @@ class RefrigeratorFullFlowE2eTest {
         root.summary.accept(SummaryStore.Intent.ReportChanged(marker))
         onNodeWithTag(MasterdocTestTags.SUMMARY_SUBMIT).performClick()
 
-        // 6. POST/GET via CaseReportsApi (same client as mvp-web; SummaryStore coroutine is flaky in desktop UI test)
+        // 6. POST/GET via CaseReportsApi (same client as copilot web; SummaryStore coroutine is flaky in desktop UI test)
         val api = CaseReportsApi(HttpClientFactory().create(), integrationApiConfig())
         runBlocking {
             api.createReport(

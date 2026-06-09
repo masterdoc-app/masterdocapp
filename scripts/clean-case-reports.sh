@@ -26,7 +26,7 @@ prefixes = (
     "e2e-flow-",
     "browser-fetch-",
     "agent-web-e2e-",
-    "mvp-web-verify-",
+    "copilot-verify-",
 )
 exact = {
     "smoke test report",

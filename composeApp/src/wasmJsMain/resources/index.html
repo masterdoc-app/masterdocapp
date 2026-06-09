@@ -169,9 +169,48 @@
         body.masterdoc-camera-open #masterdoc-scan-shutter {
             display: none !important;
         }
+        #masterdoc-boot-status {
+            position: fixed;
+            inset: 0;
+            z-index: 2147483645;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            background: #FBF8F3;
+            color: #1A1814;
+            font: 500 15px/1.4 "IBM Plex Sans", system-ui, sans-serif;
+            text-align: center;
+            padding: 24px;
+        }
+        #masterdoc-boot-status[hidden] {
+            display: none !important;
+        }
+        #masterdoc-boot-status .masterdoc-boot-spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(194, 65, 12, 0.2);
+            border-top-color: #C2410C;
+            border-radius: 50%;
+            animation: masterdoc-boot-spin 0.9s linear infinite;
+        }
+        @keyframes masterdoc-boot-spin {
+            to { transform: rotate(360deg); }
+        }
+        #masterdoc-boot-status .masterdoc-boot-hint {
+            max-width: 320px;
+            color: rgba(26, 24, 20, 0.72);
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
+<div id="masterdoc-boot-status" role="status" aria-live="polite">
+    <div class="masterdoc-boot-spinner" aria-hidden="true"></div>
+    <div>Загрузка приложения…</div>
+    <div class="masterdoc-boot-hint">Первая загрузка может занять до минуты</div>
+</div>
 <div id="masterdoc-compose-root"></div>
 <button id="masterdoc-scan-shutter" type="button" hidden aria-label="Сканировать камерой"></button>
 <script>
@@ -194,13 +233,40 @@
 <script>
     // composeApp.js is an async webpack bundle; globalThis.composeApp is a Promise.
     (function () {
+        var statusEl = document.getElementById("masterdoc-boot-status");
+        var bootDone = false;
+        var bootTimeoutMs = 60000;
+
+        function hideBootStatus() {
+            bootDone = true;
+            if (statusEl) statusEl.hidden = true;
+        }
+
+        function showBootError(message, detail) {
+            hideBootStatus();
+            var el = document.createElement("pre");
+            el.style.cssText = "color:#b91c1c;padding:16px;font:14px/1.4 system-ui;white-space:pre-wrap";
+            el.textContent = message + (detail ? "\n\n" + detail : "");
+            document.body.appendChild(el);
+        }
+
+        window.setTimeout(function () {
+            if (bootDone || !statusEl) return;
+            var hint = statusEl.querySelector(".masterdoc-boot-hint");
+            if (hint) {
+                hint.textContent = "Загрузка занимает больше обычного. Проверьте интернет и обновите страницу.";
+            }
+        }, bootTimeoutMs);
+
         var boot = globalThis.composeApp;
         if (!boot || typeof boot.then !== "function") {
             console.error("[masterdoc] composeApp.js did not register globalThis.composeApp");
+            showBootError("Ошибка загрузки приложения: composeApp.js не инициализировался.");
             return;
         }
         boot.then(function () {
             console.info("[masterdoc] wasm ready");
+            hideBootStatus();
         }).catch(function (err) {
             console.error("[masterdoc] wasm boot failed", err);
             var detail = window.__masterdocLastKotlinError || "";
@@ -214,10 +280,10 @@
                 } catch (ignore) {}
             }
             if (!detail) detail = String(err);
-            var el = document.createElement("pre");
-            el.style.cssText = "color:#b91c1c;padding:16px;font:14px/1.4 system-ui;white-space:pre-wrap";
-            el.textContent = "Ошибка загрузки приложения. Пересоберите web: bash scripts/run-web.sh\n\n" + detail;
-            document.body.appendChild(el);
+            showBootError(
+                "Ошибка загрузки приложения. Проверьте интернет и обновите страницу.",
+                detail
+            );
         });
     })();
 </script>

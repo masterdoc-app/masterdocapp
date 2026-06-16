@@ -1,25 +1,25 @@
-# Masterdoc Design System (lite)
+# Masterdoc Design System (Fixaverse)
 
-Aligned with **[lite.masterdoc.pro](https://lite.masterdoc.pro)** — paper / ink / flare palette, IBM Plex Sans, Fraunces, JetBrains Mono.
+Aligned with **[fixaverse.ru](https://fixaverse.ru)** — white / navy / blue palette, IBM Plex Sans, Fraunces, JetBrains Mono.
 
-Source of truth for CSS tokens: `masterdoc-lite/landing/index.html` (`:root` variables).
+Source of truth for CSS tokens: `masterdoc-toir/landing/copilot-floor.css` and `styles.css`.
 
 ## Palette
 
 | Token | Hex | Usage |
 |-------|-----|--------|
-| Paper | `#FBF8F3` | App background, assistant bubble |
-| Paper2 | `#F3EEE4` | Elevated surfaces, app-head, input bar |
-| Paper3 | `#EAE3D4` | Section breaks |
-| Rule | `#DDD6C7` | Borders |
-| Rule2 | `#C8BFA9` | Strong borders |
-| Ink | `#1A1814` | Primary text, user bubble, primary button |
-| Ink2 | `#3A3530` | Secondary text |
-| Ink3 | `#6B665C` | Hints, timestamps |
-| Flare | `#C2410C` | Accent, mic, links, mono labels |
-| Flare soft | `#F3E4D2` | Option letter badge |
-| Forest | `#2E6B3E` | Success, live indicator |
-| Marian | `#2A3E6B` | Brand mark on fault screen |
+| Paper | `#FFFFFF` | App background, assistant bubble |
+| Paper2 | `#F9FAFB` | Elevated surfaces, app-head, input bar |
+| Paper3 | `#EEF3FF` | Accent tint surfaces |
+| Rule | `#E5E7EB` | Borders |
+| Rule2 | `#C7D8F5` | Strong borders, home bar |
+| Ink | `#0D1B3A` | Primary text, user bubble, primary button |
+| Ink2 | `#334155` | Secondary text |
+| Ink3 | `#64748B` | Hints, timestamps |
+| Flare | `#1A6FFF` | Accent, mic, links, mono labels |
+| Flare soft | `#DBE8FF` | Option letter badge |
+| Forest | `#16A34A` | Success, live indicator |
+| Marian | `#0D1B3A` | Brand mark, phone chrome |
 
 ## Typography
 
@@ -31,16 +31,16 @@ Source of truth for CSS tokens: `masterdoc-lite/landing/index.html` (`:root` var
 
 Fonts live in `composeApp/src/commonMain/composeResources/font/`.
 
-## Components (lite wireframes)
+## Components (copilot wireframes)
 
-| Composable | lite CSS |
+| Composable | CSS |
 |------------|----------|
 | `LiteAppHead` | `.app-head` |
 | `MasterdocMessageSurface` | `.bubble.user` / `.bubble.mary` |
 | `LiteOptionCard` | `.opt` |
 | `LiteChip` | `.chip` |
-| `LiteFlareButton` | `.btn` with flare arrow |
-| `MasterdocPrimaryButton` | `.btn` ink fill |
+| `LiteFlareButton` | `.btn` with accent arrow |
+| `MasterdocPrimaryButton` | `.btn` navy fill |
 | `Modifier.masterdocConvoBackground()` | `.convo` gradient |
 
 ## Usage
@@ -48,7 +48,7 @@ Fonts live in `composeApp/src/commonMain/composeResources/font/`.
 ```kotlin
 MasterdocTheme {
     val fonts = LocalMasterdocFontFamilies.current
-    LiteAppHead(title = "Masterdoc · SMT-12", subtitle = "Голос · активен", subtitleLive = true)
+    LiteAppHead(title = "Fixaverse · SMT-12", subtitle = "Голос · активен", subtitleLive = true)
     LiteOptionCard(letter = "A", body = "Сброс — удерживайте START 3 сек…")
     LiteChip(text = "82% уверенность · 11 похожих", flare = true)
 }
@@ -62,7 +62,7 @@ Prefer `MaterialTheme.colorScheme` in screens; use `MasterdocLiteTokens` / `Mast
 - `MasterdocColors.kt` — semantic tokens
 - `MasterdocFonts.kt` — bundled font families
 - `MasterdocTypography.kt` — M3 scale + `MasterdocLiteTextStyles`
-- `MasterdocDimens.kt` — spacing, lite radii
+- `MasterdocDimens.kt` — spacing, radii
 - `MasterdocShapes.kt` — bubbles, square buttons
 - `MasterdocComponents.kt` — UI building blocks
 - `Theme.kt` — `MasterdocTheme()`

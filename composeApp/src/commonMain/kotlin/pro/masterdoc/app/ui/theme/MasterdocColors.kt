@@ -2,7 +2,7 @@ package pro.masterdoc.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-/** Raw palette — lite.masterdoc.pro paper / ink / flare. */
+/** Raw palette — Fixaverse copilot (fixaverse.ru). */
 object MasterdocPalette {
     val Paper = MasterdocLiteTokens.Paper
     val Paper2 = MasterdocLiteTokens.Paper2

@@ -3,43 +3,44 @@ package pro.masterdoc.app.ui.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Design tokens from [lite.masterdoc.pro](https://lite.masterdoc.pro) (`masterdoc-lite/landing/index.html`).
- * Paper / ink / flare — warm editorial palette.
+ * Design tokens aligned with [fixaverse.ru](https://fixaverse.ru) copilot UI
+ * (`masterdoc-toir/landing/copilot-floor.css`, `styles.css`).
+ * Clean white surfaces, navy text, blue accent.
  */
 object MasterdocLiteTokens {
-    // Paper surfaces
-    val Paper = Color(0xFFFBF8F3)
-    val Paper2 = Color(0xFFF3EEE4)
-    val Paper3 = Color(0xFFEAE3D4)
-    val Paper4 = Color(0xFFE0D7C3)
+    // Surfaces
+    val Paper = Color(0xFFFFFFFF)
+    val Paper2 = Color(0xFFF9FAFB)
+    val Paper3 = Color(0xFFEEF3FF)
+    val Paper4 = Color(0xFFDBE8FF)
 
-    // Rules / borders
-    val Rule = Color(0xFFDDD6C7)
-    val Rule2 = Color(0xFFC8BFA9)
+    // Borders
+    val Rule = Color(0xFFE5E7EB)
+    val Rule2 = Color(0xFFC7D8F5)
 
-    // Ink text
-    val Ink = Color(0xFF1A1814)
-    val Ink2 = Color(0xFF3A3530)
-    val Ink3 = Color(0xFF6B665C)
+    // Text (navy scale)
+    val Ink = Color(0xFF0D1B3A)
+    val Ink2 = Color(0xFF334155)
+    val Ink3 = Color(0xFF64748B)
 
-    // Flare (burnt sienna accent)
-    val Flare = Color(0xFFC2410C)
-    val FlareDim = Color(0x17C2410C)
-    val FlareBorder = Color(0x59C2410C)
-    val FlareTint = Color(0xFFFFE9D5)
-    val FlareSoft = Color(0xFFF3E4D2)
+    // Accent (Fixaverse blue)
+    val Flare = Color(0xFF1A6FFF)
+    val FlareDim = Color(0x171A6FFF)
+    val FlareBorder = Color(0x591A6FFF)
+    val FlareTint = Color(0xFFEEF3FF)
+    val FlareSoft = Color(0xFFDBE8FF)
 
     // Status
-    val Forest = Color(0xFF2E6B3E)
-    val ForestDim = Color(0x1A2E6B3E)
-    val ForestSoft = Color(0xFFE2EBD9)
-    val WarmRed = Color(0xFFB23A3A)
-    val WarmRedDim = Color(0x14B23A3A)
-    val Marian = Color(0xFF2A3E6B)
+    val Forest = Color(0xFF16A34A)
+    val ForestDim = Color(0x1F16A34A)
+    val ForestSoft = Color(0xFFECFDF5)
+    val WarmRed = Color(0xFFDC2626)
+    val WarmRedDim = Color(0x14DC2626)
+    val Marian = Color(0xFF0D1B3A)
 
     val InkDark = Ink
     val OnPaper = Paper
 
-    val PhoneChrome = Color(0xFF0D0B09)
+    val PhoneChrome = Color(0xFF0D1B3A)
     val QrBackdrop = Color(0xFF0A0A0A)
 }

@@ -10,6 +10,9 @@ import pro.fixaverse.data.chat.StreamingChatUpdate
 import pro.fixaverse.domain.chat.ChatMessage
 import pro.fixaverse.domain.chat.ChatMessageStatus
 import pro.fixaverse.domain.chat.ChatRole
+import pro.fixaverse.domain.chat.ChatTimelineStep
+import pro.fixaverse.domain.chat.TimelineStepKind
+import pro.fixaverse.domain.chat.TimelineStepStatus
 import kotlin.random.Random
 
 class ChatStoreFactory(
@@ -37,6 +40,11 @@ private sealed interface Msg {
         val messages: List<ChatMessage>,
     ) : Msg
     data class AppendOptimisticUser(val message: ChatMessage) : Msg
+    data class StartSend(
+        val userMessage: ChatMessage,
+        val streamingAssistantId: String,
+        val conversationId: String?,
+    ) : Msg
     data class StreamUpdate(
         val conversationId: String,
         val tempUserId: String,
@@ -78,6 +86,13 @@ private object ChatReducer : Reducer<ChatStore.State, Msg> {
         )
         is Msg.AppendOptimisticUser -> copy(
             messages = messages + msg.message,
+            input = "",
+            isSending = true,
+            error = null,
+        )
+        is Msg.StartSend -> copy(
+            conversationId = msg.conversationId ?: conversationId,
+            messages = messages + msg.userMessage + pendingAssistantMessage(msg.streamingAssistantId),
             input = "",
             isSending = true,
             error = null,
@@ -177,7 +192,13 @@ private class ChatExecutor(
             content = text,
             status = ChatMessageStatus.Sending,
         )
-        dispatch(Msg.AppendOptimisticUser(optimistic))
+        dispatch(
+            Msg.StartSend(
+                userMessage = optimistic,
+                streamingAssistantId = streamingAssistantId,
+                conversationId = current.conversationId,
+            ),
+        )
 
         scope.launch {
             repository.send(
@@ -224,3 +245,18 @@ private class ChatExecutor(
         else -> message ?: "Неизвестная ошибка"
     }
 }
+
+private fun pendingAssistantMessage(id: String): ChatMessage = ChatMessage(
+    id = id,
+    role = ChatRole.Assistant,
+    content = "",
+    isStreaming = true,
+    timeline = listOf(
+        ChatTimelineStep(
+            id = "search",
+            label = "Поиск в документах",
+            kind = TimelineStepKind.Search,
+            status = TimelineStepStatus.Active,
+        ),
+    ),
+)

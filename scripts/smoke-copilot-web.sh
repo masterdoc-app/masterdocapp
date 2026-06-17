@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Smoke-test copilot Wasm deployment.
 # Usage: ./scripts/smoke-copilot-web.sh [base_url]
-# Example: ./scripts/smoke-copilot-web.sh https://copilot.masterdoc.pro
+# Example: ./scripts/smoke-copilot-web.sh https://copilot.fixaverse.ru
 set -euo pipefail
 
-BASE="${1:-https://copilot.masterdoc.pro}"
+BASE="${1:-https://copilot.fixaverse.ru}"
 BASE="${BASE%/}"
 API_BASE="${MASTERDOC_API_BASE:-https://api.masterdoc.pro}"
 API_BASE="${API_BASE%/}"

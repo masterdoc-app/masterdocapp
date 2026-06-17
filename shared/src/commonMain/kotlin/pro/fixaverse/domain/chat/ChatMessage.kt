@@ -19,4 +19,6 @@ data class ChatMessage(
     val status: ChatMessageStatus = ChatMessageStatus.Sent,
     val timeline: List<ChatTimelineStep> = emptyList(),
     val isStreaming: Boolean = false,
+    /** Citation index (e.g. "1") → Onyx document id. */
+    val citations: Map<String, String> = emptyMap(),
 )

@@ -14,6 +14,7 @@ internal fun OnyxChatMessageDto.toDomain(status: ChatMessageStatus = ChatMessage
         content = message,
         createdAt = timeSent,
         status = status,
+        citations = citations.orEmpty(),
     )
 }
 

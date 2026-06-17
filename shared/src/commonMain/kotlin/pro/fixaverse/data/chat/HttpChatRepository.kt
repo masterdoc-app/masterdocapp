@@ -43,6 +43,21 @@ class HttpChatRepository(
             status = ChatMessageStatus.Sent,
         )
         val assistantId = "assistant-${sessionId}-${trimmed.hashCode()}"
+
+        if (useStreamingChatTransport()) {
+            sendWithStreaming(trimmed, sessionId, userMessage, assistantId, onStreamUpdate)
+        } else {
+            sendBuffered(trimmed, sessionId, userMessage, assistantId, onStreamUpdate)
+        }
+    }.mapError(::toUserMessage)
+
+    private suspend fun sendWithStreaming(
+        trimmed: String,
+        sessionId: String,
+        userMessage: ChatMessage,
+        assistantId: String,
+        onStreamUpdate: (StreamingChatUpdate) -> Unit,
+    ): SendChatResult {
         val accumulator = OnyxStreamAccumulator()
 
         api.sendChatMessageStream(trimmed, sessionId) { line ->
@@ -68,24 +83,74 @@ class HttpChatRepository(
             error("Пустой ответ от Onyx")
         }
 
-        SendChatResult(
+        val citations = loadLatestAssistantCitations(sessionId)
+        return SendChatResult(
             conversationId = sessionId,
             userMessage = userMessage,
-            assistantMessage = ChatMessage(
-                id = assistantId,
-                role = ChatRole.Assistant,
-                content = final.answer,
-                timeline = final.timeline.map { step ->
-                    if (step.status == TimelineStepStatus.Active) {
-                        step.copy(status = TimelineStepStatus.Done)
-                    } else {
-                        step
-                    }
-                },
-                isStreaming = false,
+            assistantMessage = finalAssistantMessage(assistantId, final).copy(citations = citations),
+        )
+    }
+
+    private suspend fun sendBuffered(
+        trimmed: String,
+        sessionId: String,
+        userMessage: ChatMessage,
+        assistantId: String,
+        onStreamUpdate: (StreamingChatUpdate) -> Unit,
+    ): SendChatResult {
+        val response = api.sendChatMessage(trimmed, sessionId)
+        val answer = response.answer.ifBlank { response.errorMsg.orEmpty() }
+        if (answer.isBlank()) {
+            error("Пустой ответ от Onyx")
+        }
+
+        val citations = loadLatestAssistantCitations(sessionId)
+        val assistantMessage = ChatMessage(
+            id = assistantId,
+            role = ChatRole.Assistant,
+            content = answer,
+            isStreaming = false,
+            citations = citations,
+        )
+        onStreamUpdate(
+            StreamingChatUpdate(
+                conversationId = sessionId,
+                userMessage = userMessage,
+                assistantMessage = assistantMessage,
             ),
         )
-    }.mapError(::toUserMessage)
+
+        return SendChatResult(
+            conversationId = sessionId,
+            userMessage = userMessage,
+            assistantMessage = assistantMessage,
+        )
+    }
+
+    private fun finalAssistantMessage(
+        assistantId: String,
+        final: OnyxStreamAccumulator.Snapshot,
+    ): ChatMessage = ChatMessage(
+        id = assistantId,
+        role = ChatRole.Assistant,
+        content = final.answer,
+        timeline = final.timeline.map { step ->
+            if (step.status == TimelineStepStatus.Active) {
+                step.copy(status = TimelineStepStatus.Done)
+            } else {
+                step
+            }
+        },
+        isStreaming = false,
+    )
+
+    private suspend fun loadLatestAssistantCitations(sessionId: String): Map<String, String> =
+        runCatching {
+            api.getChatSession(sessionId).messages
+                .lastOrNull { it.messageType.equals("assistant", ignoreCase = true) }
+                ?.citations
+                .orEmpty()
+        }.getOrDefault(emptyMap())
 
     private fun toUserMessage(throwable: Throwable): String = when (throwable) {
         is ClientRequestException -> when (throwable.response.status.value) {
@@ -94,10 +159,13 @@ class HttpChatRepository(
             else -> "Ошибка запроса (${throwable.response.status.value})"
         }
         is ServerResponseException -> "Ошибка сервера (${throwable.response.status.value})"
-        else -> if (throwable.message.orEmpty().contains("connection", ignoreCase = true)) {
-            "Нет соединения с сервером"
-        } else {
-            throwable.message ?: "Неизвестная ошибка"
+        else -> {
+            val message = throwable.message.orEmpty()
+            when {
+                message.contains("connection", ignoreCase = true) ||
+                    message.contains("network error", ignoreCase = true) -> "Нет соединения с сервером"
+                else -> message.ifBlank { "Неизвестная ошибка" }
+            }
         }
     }
 }

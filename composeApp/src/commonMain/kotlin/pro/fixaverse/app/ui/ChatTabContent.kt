@@ -43,6 +43,7 @@ import pro.fixaverse.app.ui.theme.FixaverseMessageSurface
 import pro.fixaverse.app.ui.theme.UserMessageShape
 import pro.fixaverse.domain.chat.ChatMessageStatus
 import pro.fixaverse.domain.chat.ChatRole
+import pro.fixaverse.domain.chat.TimelineStepStatus
 import pro.fixaverse.presentation.chat.ChatComponent
 import pro.fixaverse.presentation.chat.ChatStore
 import pro.fixaverse.presentation.equipment.EquipmentSelectionStore
@@ -213,9 +214,15 @@ private fun ChatMessageBubble(
                             color = MaterialTheme.colorScheme.onPrimary,
                         )
                     } else {
-                        ChatMarkdownText(content = message.content)
+                        ChatMarkdownText(
+                            content = message.content,
+                            citations = message.citations,
+                        )
                     }
-                } else if (message.isStreaming) {
+                } else if (
+                    message.isStreaming &&
+                    message.timeline.none { it.status == TimelineStepStatus.Active }
+                ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,

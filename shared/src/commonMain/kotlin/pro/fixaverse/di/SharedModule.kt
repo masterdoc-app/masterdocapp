@@ -8,6 +8,7 @@ import pro.fixaverse.data.assistant.AssistantsApi
 import pro.fixaverse.data.assistant.AssistantsRepository
 import pro.fixaverse.data.assistant.HttpAssistantsRepository
 import pro.fixaverse.data.assistant.MockAssistantsRepository
+import pro.fixaverse.data.citation.CitationsApi
 import pro.fixaverse.data.chat.ChatApi
 import pro.fixaverse.data.chat.ChatDataMode
 import pro.fixaverse.data.chat.ChatRepository
@@ -37,6 +38,7 @@ val sharedModule = module {
 
     factory { AssistantsApi(httpClient = get(), apiConfig = get()) }
     factory { ChatApi(httpClient = get(), apiConfig = get()) }
+    factory { CitationsApi(httpClient = get(), apiConfig = get()) }
     factory { CaseReportsApi(httpClient = get(), apiConfig = get()) }
     factory { VoiceApi(httpClient = get(), apiConfig = get()) }
 

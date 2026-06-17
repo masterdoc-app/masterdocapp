@@ -12,8 +12,8 @@ concurrency:
 env:
   DEPLOY_HOST: 91.207.75.72
   DEPLOY_PATH: /opt/masterdoc-copilot
-  WEB_ROOT: /var/www/copilot.masterdoc.pro
-  SITE_HOST: copilot.masterdoc.pro
+  WEB_ROOT: /var/www/copilot.fixaverse.ru
+  SITE_HOST: copilot.fixaverse.ru
 
 jobs:
   build:
@@ -42,7 +42,7 @@ jobs:
           retention-days: 3
 
   deploy:
-    name: Deploy to copilot.masterdoc.pro
+    name: Deploy to copilot.fixaverse.ru
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -95,9 +95,12 @@ jobs:
         run: |
           rsync -avz \
             -e "ssh -i $HOME/.ssh/deploy_ed25519 -o IdentitiesOnly=yes" \
+            deploy/copilot.fixaverse.ru.nginx.conf \
+            deploy/copilot.fixaverse.ru.nginx.http.conf \
             deploy/copilot.masterdoc.pro.nginx.conf \
             deploy/copilot.masterdoc.pro.nginx.http.conf \
             deploy/install-copilot-nginx.sh \
+            deploy/install-copilot-fixaverse-nginx.sh \
             "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
 
       - name: Install nginx site and TLS
@@ -108,8 +111,9 @@ jobs:
           ssh -i "$HOME/.ssh/deploy_ed25519" -o IdentitiesOnly=yes \
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
             "chmod +x ${DEPLOY_PATH}/install-copilot-nginx.sh && \
-             DEPLOY_PATH='${DEPLOY_PATH}' CERTBOT_EMAIL='${CERTBOT_EMAIL:-admin@masterdoc.pro}' \
-             ${DEPLOY_PATH}/install-copilot-nginx.sh"
+             DEPLOY_PATH='${DEPLOY_PATH}' CERTBOT_EMAIL='${CERTBOT_EMAIL:-admin@fixaverse.ru}' \
+             SITE_HOST='${SITE_HOST}' \
+             ${DEPLOY_PATH}/install-copilot-fixaverse-nginx.sh"
 
       - name: Smoke (HTTPS or localhost)
         env:

@@ -24,6 +24,7 @@ data class OnyxChatMessageDto(
     val message: String,
     @SerialName("time_sent")
     val timeSent: String? = null,
+    val citations: Map<String, String>? = null,
 )
 
 @Serializable

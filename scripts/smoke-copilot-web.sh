@@ -13,7 +13,7 @@ echo "==> GET ${BASE}/"
 HTML="$(curl -fsS --max-time 30 "${BASE}/")"
 echo "${HTML}" | head -c 300
 echo
-echo "${HTML}" | grep -qi masterdoc || { echo "FAIL: HTML missing Masterdoc"; exit 1; }
+echo "${HTML}" | grep -qi fixaverse || { echo "FAIL: HTML missing Fixaverse"; exit 1; }
 
 echo "==> GET ${BASE}/composeApp.js"
 JS="$(curl -fsS --max-time 60 "${BASE}/composeApp.js")"

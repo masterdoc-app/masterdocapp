@@ -17,7 +17,7 @@ echo "==> Searching logs for case-report + marker=$MARKER"
 # shellcheck disable=SC2086
 OUT="$(bash -lc "$LOG_CMD 2>/dev/null | grep -F 'case-report' | grep -F '$MARKER'" || true)"
 if [[ -z "$OUT" ]]; then
-  echo "FAIL: no [masterdoc case-report] line with marker in server logs"
+  echo "FAIL: no [fixaverse case-report] line with marker in server logs"
   echo "Hint: run E2E with MASTERDOC_INTEGRATION=1, then grep on the host running backend"
   exit 1
 fi

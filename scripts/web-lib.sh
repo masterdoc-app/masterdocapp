@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Shared helpers for run-web.sh / serve-web.sh
 
-masterdoc_web_stop_listener() {
+fixaverse_web_stop_listener() {
   local port="$1"
   if command -v lsof >/dev/null 2>&1; then
     local pid args
@@ -23,7 +23,7 @@ masterdoc_web_stop_listener() {
   fi
 }
 
-masterdoc_web_free_build_memory() {
+fixaverse_web_free_build_memory() {
   local root="$1"
   if [ -x "$root/gradlew" ]; then
     (cd "$root" && ./gradlew --stop >/dev/null 2>&1) || true

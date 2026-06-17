@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masterdoc</title>
-    <link rel="icon" type="image/svg+xml" href="assets/logo-mark.svg">
+    <title>Fixaverse</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="assets/logo-mark.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png">
     <link rel="icon" href="favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-masterdoc-3d-bw.png">
-    <link rel="apple-touch-icon" href="assets/favicon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
     <style>
         html, body {
             width: 100%;
@@ -17,19 +18,19 @@
             overflow: hidden;
             background: #FFFFFF;
         }
-        #masterdoc-compose-root {
+        #fixaverse-compose-root {
             position: relative;
             z-index: 1;
             width: 100%;
             height: 100%;
         }
-        #masterdoc-compose-root canvas {
+        #fixaverse-compose-root canvas {
             display: block;
         }
-        body.masterdoc-camera-open #masterdoc-compose-root {
+        body.fixaverse-camera-open #fixaverse-compose-root {
             visibility: hidden;
         }
-        #masterdoc-camera-overlay {
+        #fixaverse-camera-overlay {
             display: none;
             position: fixed;
             inset: 0;
@@ -37,10 +38,10 @@
             background: #000;
             pointer-events: auto;
         }
-        #masterdoc-camera-overlay.active {
+        #fixaverse-camera-overlay.active {
             display: block;
         }
-        #masterdoc-camera-preview {
+        #fixaverse-camera-preview {
             position: absolute;
             inset: 0;
             width: 100%;
@@ -48,7 +49,7 @@
             object-fit: cover;
             background: #111;
         }
-        #masterdoc-camera-status {
+        #fixaverse-camera-status {
             position: absolute;
             inset: 0;
             display: none;
@@ -62,10 +63,10 @@
             z-index: 2;
             background: rgba(0, 0, 0, 0.35);
         }
-        #masterdoc-camera-overlay.waiting #masterdoc-camera-status {
+        #fixaverse-camera-overlay.waiting #fixaverse-camera-status {
             display: flex;
         }
-        #masterdoc-camera-hint {
+        #fixaverse-camera-hint {
             position: absolute;
             top: max(20px, env(safe-area-inset-top));
             left: 0;
@@ -79,7 +80,7 @@
             z-index: 3;
             padding: 0 56px;
         }
-        #masterdoc-camera-back {
+        #fixaverse-camera-back {
             position: absolute;
             top: max(12px, env(safe-area-inset-top));
             left: max(12px, env(safe-area-inset-left));
@@ -97,7 +98,7 @@
             justify-content: center;
             padding: 0 0 2px 0;
         }
-        #masterdoc-camera-controls {
+        #fixaverse-camera-controls {
             position: absolute;
             left: 0;
             right: 0;
@@ -110,7 +111,7 @@
             background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
             pointer-events: none;
         }
-        #masterdoc-camera-capture {
+        #fixaverse-camera-capture {
             pointer-events: auto;
             width: 76px;
             height: 76px;
@@ -124,14 +125,14 @@
             justify-content: center;
             box-sizing: border-box;
         }
-        #masterdoc-camera-capture:disabled {
+        #fixaverse-camera-capture:disabled {
             opacity: 0.45;
             cursor: wait;
         }
-        #masterdoc-camera-capture.ready:active .masterdoc-shutter-inner {
+        #fixaverse-camera-capture.ready:active .fixaverse-shutter-inner {
             transform: scale(0.88);
         }
-        .masterdoc-shutter-inner {
+        .fixaverse-shutter-inner {
             display: block;
             width: 100%;
             height: 100%;
@@ -139,14 +140,14 @@
             background: #FFFFFF;
             transition: transform 0.12s ease;
         }
-        #masterdoc-camera-capture.ready .masterdoc-shutter-inner {
+        #fixaverse-camera-capture.ready .fixaverse-shutter-inner {
             background: #1A6FFF;
         }
-        #masterdoc-camera-file-input {
+        #fixaverse-camera-file-input {
             display: none;
         }
         /* HTML hit target above Skiko canvas — must receive the real tap for getUserMedia. */
-        #masterdoc-scan-shutter {
+        #fixaverse-scan-shutter {
             display: none;
             position: fixed;
             z-index: 2147483646;
@@ -163,13 +164,13 @@
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
-        #masterdoc-scan-shutter:not([hidden]) {
+        #fixaverse-scan-shutter:not([hidden]) {
             display: block;
         }
-        body.masterdoc-camera-open #masterdoc-scan-shutter {
+        body.fixaverse-camera-open #fixaverse-scan-shutter {
             display: none !important;
         }
-        #masterdoc-boot-status {
+        #fixaverse-boot-status {
             position: fixed;
             inset: 0;
             z-index: 2147483645;
@@ -184,21 +185,21 @@
             text-align: center;
             padding: 24px;
         }
-        #masterdoc-boot-status[hidden] {
+        #fixaverse-boot-status[hidden] {
             display: none !important;
         }
-        #masterdoc-boot-status .masterdoc-boot-spinner {
+        #fixaverse-boot-status .fixaverse-boot-spinner {
             width: 36px;
             height: 36px;
             border: 3px solid rgba(26, 111, 255, 0.2);
             border-top-color: #1A6FFF;
             border-radius: 50%;
-            animation: masterdoc-boot-spin 0.9s linear infinite;
+            animation: fixaverse-boot-spin 0.9s linear infinite;
         }
-        @keyframes masterdoc-boot-spin {
+        @keyframes fixaverse-boot-spin {
             to { transform: rotate(360deg); }
         }
-        #masterdoc-boot-status .masterdoc-boot-hint {
+        #fixaverse-boot-status .fixaverse-boot-hint {
             max-width: 320px;
             color: rgba(13, 27, 58, 0.72);
             font-size: 13px;
@@ -206,34 +207,34 @@
     </style>
 </head>
 <body>
-<div id="masterdoc-boot-status" role="status" aria-live="polite">
-    <div class="masterdoc-boot-spinner" aria-hidden="true"></div>
+<div id="fixaverse-boot-status" role="status" aria-live="polite">
+    <div class="fixaverse-boot-spinner" aria-hidden="true"></div>
     <div>Загрузка приложения…</div>
-    <div class="masterdoc-boot-hint">Первая загрузка может занять до минуты</div>
+    <div class="fixaverse-boot-hint">Первая загрузка может занять до минуты</div>
 </div>
-<div id="masterdoc-compose-root"></div>
-<button id="masterdoc-scan-shutter" type="button" hidden aria-label="Сканировать камерой"></button>
+<div id="fixaverse-compose-root"></div>
+<button id="fixaverse-scan-shutter" type="button" hidden aria-label="Сканировать камерой"></button>
 <script>
-    window.__masterdocLastKotlinError = null;
+    window.__fixaverseLastKotlinError = null;
     window.addEventListener("error", function (event) {
         if (event.error && event.error.message) {
-            window.__masterdocLastKotlinError = event.error.message + "\n" + (event.error.stack || "");
+            window.__fixaverseLastKotlinError = event.error.message + "\n" + (event.error.stack || "");
         }
     });
     window.addEventListener("unhandledrejection", function (event) {
         var reason = event.reason;
         if (reason && reason.message) {
-            window.__masterdocLastKotlinError = reason.message + "\n" + (reason.stack || "");
+            window.__fixaverseLastKotlinError = reason.message + "\n" + (reason.stack || "");
         }
     });
 </script>
-<script src="masterdoc-image.js?v=1"></script>
-<script src="masterdoc-camera.js?v=32"></script>
+<script src="fixaverse-image.js?v=1"></script>
+<script src="fixaverse-camera.js?v=32"></script>
 <script src="composeApp.js?v=28"></script>
 <script>
     // composeApp.js is an async webpack bundle; globalThis.composeApp is a Promise.
     (function () {
-        var statusEl = document.getElementById("masterdoc-boot-status");
+        var statusEl = document.getElementById("fixaverse-boot-status");
         var bootDone = false;
         var bootTimeoutMs = 60000;
 
@@ -252,7 +253,7 @@
 
         window.setTimeout(function () {
             if (bootDone || !statusEl) return;
-            var hint = statusEl.querySelector(".masterdoc-boot-hint");
+            var hint = statusEl.querySelector(".fixaverse-boot-hint");
             if (hint) {
                 hint.textContent = "Загрузка занимает больше обычного. Проверьте интернет и обновите страницу.";
             }
@@ -260,16 +261,16 @@
 
         var boot = globalThis.composeApp;
         if (!boot || typeof boot.then !== "function") {
-            console.error("[masterdoc] composeApp.js did not register globalThis.composeApp");
+            console.error("[fixaverse] composeApp.js did not register globalThis.composeApp");
             showBootError("Ошибка загрузки приложения: composeApp.js не инициализировался.");
             return;
         }
         boot.then(function () {
-            console.info("[masterdoc] wasm ready");
+            console.info("[fixaverse] wasm ready");
             hideBootStatus();
         }).catch(function (err) {
-            console.error("[masterdoc] wasm boot failed", err);
-            var detail = window.__masterdocLastKotlinError || "";
+            console.error("[fixaverse] wasm boot failed", err);
+            var detail = window.__fixaverseLastKotlinError || "";
             if (!detail && err && err.message) detail = err.message;
             if (!detail && err && err.isException) {
                 try {

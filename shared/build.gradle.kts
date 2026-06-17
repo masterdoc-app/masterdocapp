@@ -15,10 +15,10 @@ if (localPropertiesFile.exists()) {
 
 fun readLocalProperty(key: String): String = localProperties.getProperty(key)?.trim().orEmpty()
 
-val generateMasterdocBuildConfig = tasks.register("generateMasterdocBuildConfig") {
+val generateFixaverseBuildConfig = tasks.register("generateFixaverseBuildConfig") {
     val generatedKotlinDir =
-        layout.buildDirectory.dir("generated/masterdocBuildConfig/kotlin/pro/masterdoc/data/config")
-    val generatedFile = generatedKotlinDir.map { it.file("MasterdocBuildConfig.kt") }
+        layout.buildDirectory.dir("generated/fixaverseBuildConfig/kotlin/pro/fixaverse/data/config")
+    val generatedFile = generatedKotlinDir.map { it.file("FixaverseBuildConfig.kt") }
     if (localPropertiesFile.exists()) {
         inputs.file(localPropertiesFile)
     }
@@ -32,12 +32,12 @@ val generateMasterdocBuildConfig = tasks.register("generateMasterdocBuildConfig"
         val dir = generatedKotlinDir.get().asFile
         dir.mkdirs()
         fun String.escapeForKotlin(): String = replace("\\", "\\\\").replace("\"", "\\\"")
-        dir.resolve("MasterdocBuildConfig.kt").writeText(
+        dir.resolve("FixaverseBuildConfig.kt").writeText(
             """
-            package pro.masterdoc.data.config
+            package pro.fixaverse.data.config
 
             /** Generated from root [local.properties] (masterdoc.api.baseUrl). Do not edit. */
-            internal object MasterdocBuildConfig {
+            internal object FixaverseBuildConfig {
                 val API_BASE_URL: String = "${baseUrl.escapeForKotlin()}"
             }
             """.trimIndent() + "\n",
@@ -64,7 +64,7 @@ kotlin {
 
     sourceSets {
         commonMain {
-            kotlin.srcDir(layout.buildDirectory.dir("generated/masterdocBuildConfig/kotlin"))
+            kotlin.srcDir(layout.buildDirectory.dir("generated/fixaverseBuildConfig/kotlin"))
         }
 
         commonMain.dependencies {
@@ -112,12 +112,12 @@ kotlin {
 
 tasks.configureEach {
     if (name.startsWith("compile") && "Kotlin" in name) {
-        dependsOn(generateMasterdocBuildConfig)
+        dependsOn(generateFixaverseBuildConfig)
     }
 }
 
 android {
-    namespace = "pro.masterdoc.shared"
+    namespace = "pro.fixaverse.shared"
     compileSdk = 35
 
     defaultConfig {

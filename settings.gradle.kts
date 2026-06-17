@@ -1,4 +1,4 @@
-rootProject.name = "Masterdoc"
+rootProject.name = "Fixaverse"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

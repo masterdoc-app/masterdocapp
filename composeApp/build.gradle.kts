@@ -103,11 +103,11 @@ tasks.withType<Test>().configureEach {
 }
 
 android {
-    namespace = "pro.masterdoc.app"
+    namespace = "pro.fixaverse.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "pro.masterdoc.app"
+        applicationId = "pro.fixaverse.app"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -138,11 +138,11 @@ tasks.matching { it.name.startsWith("lint") }.configureEach {
 
 compose.desktop {
     application {
-        mainClass = "pro.masterdoc.app.MainKt"
+        mainClass = "pro.fixaverse.app.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "Masterdoc"
+            packageName = "Fixaverse"
             packageVersion = "1.0.0"
         }
     }

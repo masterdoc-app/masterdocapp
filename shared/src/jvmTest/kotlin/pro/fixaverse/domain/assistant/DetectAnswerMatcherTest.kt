@@ -13,4 +13,16 @@ class DetectAnswerMatcherTest {
             DetectAnswerMatcher.match("Фото относится к чату «Атлант-холодильники».", names),
         )
     }
+
+    @Test
+    fun matches_unique_prefix_fragment() {
+        val names = listOf("Стол холодильный", "Насос 1К", "Насос 1ЦНСг")
+        assertEquals("Стол холодильный", DetectAnswerMatcher.match("Стол", names))
+    }
+
+    @Test
+    fun returns_null_for_ambiguous_prefix() {
+        val names = listOf("Насос 1К", "Насос 1ЦНСг")
+        assertEquals(null, DetectAnswerMatcher.match("Насос", names))
+    }
 }

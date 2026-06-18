@@ -19,11 +19,20 @@ object DetectAnswerMatcher {
             }
         }
 
-        for (name in sorted) {
-            val tokens = normalize(name).split(' ').filter { it.length >= 4 }
-            if (tokens.isNotEmpty() && tokens.all { normalizedAnswer.contains(it) }) {
-                return name
+        if (normalizedAnswer.length >= 3) {
+            val prefixMatches = sorted.filter { matchesPrefix(normalizedAnswer, normalize(it)) }
+            when (prefixMatches.size) {
+                1 -> return prefixMatches.single()
+                in 2..Int.MAX_VALUE -> return null
             }
+        }
+
+        val tokenMatches = sorted.filter { name ->
+            val tokens = normalize(name).split(' ').filter { it.length >= 4 }
+            tokens.isNotEmpty() && tokens.all { normalizedAnswer.contains(it) }
+        }
+        if (tokenMatches.size == 1) {
+            return tokenMatches.single()
         }
 
         return null
@@ -33,6 +42,12 @@ object DetectAnswerMatcher {
         val exact = candidateNames.firstOrNull { normalize(it) == fragment }
         if (exact != null) return exact
         return candidateNames.firstOrNull { fragment.contains(normalize(it)) }
+    }
+
+    private fun matchesPrefix(normalizedAnswer: String, normName: String): Boolean {
+        if (!normName.startsWith(normalizedAnswer)) return false
+        if (normName.length == normalizedAnswer.length) return true
+        return !normName[normalizedAnswer.length].isLetter()
     }
 
     private fun normalize(value: String): String =

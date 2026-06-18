@@ -114,7 +114,7 @@ class AssistantsApi(
                     ?.assistant
                     ?.let {
                         parsedAssistant = it
-                        continue
+                        break
                     }
                 accumulator.onLine(line)
                 progress.onLine(line)?.let { onProgress(it) }

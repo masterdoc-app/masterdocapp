@@ -1,14 +1,16 @@
 # Copilot — спецификация продукта и архитектуры
 
-**Дата:** 2026-06-03  
-**Контекст:** [masterdocapp](../README.md), [B2B_MVP_SCOPE.md](../../master/B2B_MVP_SCOPE.md), [backend/README.md](../../backend/README.md)  
+**Дата:** 2026-06-03 · актуализация 2026-07-14  
+**Контекст:** [masterdocapp](../README.md), [B2B_MVP_SCOPE.md](../../masterdoc/B2B_MVP_SCOPE.md), [TOIR_AI_SYSTEM_DESIGN.md](../../masterdoc/TOIR_AI_SYSTEM_DESIGN.md), [backend/README.md](../../backend/README.md)  
 **Статус:** проектирование (до реализации)
+
+> **В реестре AI-агентов ТОиР** ([TOIR_AI_SYSTEM_DESIGN §4.2](../../masterdoc/TOIR_AI_SYSTEM_DESIGN.md)) этот контур называется агент **Copilot** (бывш. «Наставник»): read-only ответы инженеру по документации актива с цитатами. Backend: отдельный **`copilot-service`** (`POST /ai/copilot/*`), без общего ai-gateway. Соседние сервисы: `technologist-service` (загрузка доков и оборудования → карточки автоматически), `intake-service`, `closeout-service` (агент Репортер). Шильдик/QR — только идентификация актива **инженером в поле**, не вход Технолога.
 
 ---
 
 ## 1. Назначение
 
-**Copilot** — режим приложения Masterdoc для **техника, оператора и диспетчера** сети объектов: быстро найти ответ в документации и базе траблшутинга, пройти сценарий диагностики и **пополнять** базу проверенными решениями с поля.
+**Copilot** — режим приложения Masterdoc для **техника** (и при необходимости диспетчера) сети объектов: быстро найти ответ в документации и базе траблшутинга, пройти сценарий диагностики. Расширение KB с поля — смежный контур (черновики из Репортера / журнала; см. TOIR design).
 
 Отличие от текущего B2C (Atlant):
 
@@ -157,29 +159,32 @@ domain/facility/        # из B2B MVP — Site, Asset, WorkOrder, JournalEntry,
 
 ## 6. API (расширение backend)
 
-Текущий `/v1` — только chat + assistants. Для Copilot MVP добавить:
+Целевой backend (ТОиР): чат Copilot идёт в **`copilot-service`** через API Gateway (`POST /ai/copilot/*`), не в общий ai-gateway. Поиск по документам — через тот же контур + `search-service` (Onyx). См. [TOIR_AI_SYSTEM_DESIGN §8.2](../../masterdoc/TOIR_AI_SYSTEM_DESIGN.md).
+
+Текущий B2C `/v1` — только chat + assistants. Для Copilot MVP:
 
 ### 6.1. Поиск
 
 ```
-GET /v1/copilot/search?q=&orgId=&siteId=&assetId=&types=doc,article
+GET /ai/copilot/search?q=&orgId=&siteId=&assetId=&types=doc,article
 ```
+(алиас/переход с раннего `GET /v1/copilot/search` — допустим на переходный период)
 
-- **Фаза 1:** прокси Onyx internal search (тот же SearchTool), нормализация в `SearchHit[]` с `citation`, `documentTitle`, `page?`.
-- **Фаза 2:** собственный индекс журналов (Postgres) + merge результатов.
+- **Фаза 1:** прокси Onyx internal search через `search-service` / tools Copilot, нормализация в `SearchHit[]` с `citation`, `documentTitle`, `page?`.
+- **Фаза 2:** опционально merge с журналами из `ops_db` (dashboard).
 
-### 6.2. Copilot chat (обёртка над существующим)
+### 6.2. Copilot chat → `copilot-service`
 
 ```
-POST /v1/copilot/sessions
+POST /ai/copilot/sessions
   { personaId, orgId, siteId?, assetId?, workOrderId? }
 
-POST /v1/copilot/sessions/{id}/messages
+POST /ai/copilot/sessions/{id}/messages
   { message, stream: true }
-  → те же NDJSON строки + обогащение citations в ответе (парсинг Onyx packets)
+  → NDJSON + citations (парсинг Onyx / search packets)
 ```
 
-Backend передаёт в Onyx:
+`copilot-service` передаёт в Onyx / search-service:
 
 - `forced_tool_id` (как сейчас)
 - **document_set_ids** или persona, привязанная к org

@@ -4,7 +4,7 @@
 **Контекст:** [masterdocapp](../README.md), [B2B_MVP_SCOPE.md](../../masterdoc/B2B_MVP_SCOPE.md), [TOIR_AI_SYSTEM_DESIGN.md](../../masterdoc/TOIR_AI_SYSTEM_DESIGN.md), [backend/README.md](../../backend/README.md)  
 **Статус:** проектирование (до реализации)
 
-> **В реестре AI-агентов ТОиР** ([TOIR_AI_SYSTEM_DESIGN §4.2](../../masterdoc/TOIR_AI_SYSTEM_DESIGN.md)) этот контур называется агент **Copilot** (бывш. «Наставник»): read-only ответы инженеру по документации актива с цитатами. Backend: отдельный **`copilot-service`** (`POST /ai/copilot/*`), без общего ai-gateway. Соседние сервисы: `technologist-service` (загрузка доков и оборудования → карточки автоматически), `intake-service`, `closeout-service` (агент Репортер). Шильдик/QR — только идентификация актива **инженером в поле**, не вход Технолога.
+> **В реестре AI-агентов ТОиР** ([TOIR_AI_SYSTEM_DESIGN §5](../../masterdoc/TOIR_AI_SYSTEM_DESIGN.md)) этот контур называется агент **Copilot** (бывш. «Наставник»): read-only ответы инженеру по документации актива с цитатами. Backend: отдельный **`copilot-service`** (`POST /ai/copilot/*`), без общего ai-gateway. Соседние сервисы: `technologist-service` (загрузка доков и оборудования → карточки автоматически), `intake-service`, `closeout-service` (агент Репортер). Шильдик/QR — только идентификация актива **инженером в поле**, не вход Технолога.
 
 ---
 
@@ -159,7 +159,7 @@ domain/facility/        # из B2B MVP — Site, Asset, WorkOrder, JournalEntry,
 
 ## 6. API (расширение backend)
 
-Целевой backend (ТОиР): чат Copilot идёт в **`copilot-service`** через API Gateway (`POST /ai/copilot/*`), не в общий ai-gateway. Поиск по документам — через тот же контур + `search-service` (Onyx). См. [TOIR_AI_SYSTEM_DESIGN §8.2](../../masterdoc/TOIR_AI_SYSTEM_DESIGN.md).
+Целевой backend (ТОиР): чат Copilot идёт в **`copilot-service`** через API Gateway (`POST /ai/copilot/*`), не в общий ai-gateway. Поиск по документам — через тот же контур + `search-service` (Onyx). См. [TOIR_AI_SYSTEM_DESIGN §6](../../masterdoc/TOIR_AI_SYSTEM_DESIGN.md).
 
 Текущий B2C `/v1` — только chat + assistants. Для Copilot MVP:
 

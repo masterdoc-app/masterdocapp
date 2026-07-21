@@ -60,6 +60,7 @@ internal class OnyxStreamAccumulator {
                 },
                 kind = TimelineStepKind.Search,
             )
+            "search_tool_done" -> markActiveSearchDone()
             "python_tool_start" -> addToolStep("python", "Выполнение кода", TimelineStepKind.Tool)
             "open_url_start", "fetch_tool_start" -> addToolStep("fetch", "Открытие ссылок", TimelineStepKind.Tool)
             "image_generation_start" -> addToolStep("image", "Генерация изображения", TimelineStepKind.Tool)
@@ -85,6 +86,18 @@ internal class OnyxStreamAccumulator {
             "stop" -> {
                 finishThinking()
                 markAllToolsDone()
+            }
+            else -> {
+                val label = packetObj.string("type") ?: type
+                if (type.endsWith("_start")) {
+                    addToolStep(
+                        id = type,
+                        label = label.replace('_', ' ').replaceFirstChar { it.uppercase() },
+                        kind = TimelineStepKind.Tool,
+                    )
+                } else if (type.endsWith("_done")) {
+                    markToolDone(type.removeSuffix("_done") + "_start")
+                }
             }
         }
     }
@@ -151,6 +164,21 @@ internal class OnyxStreamAccumulator {
         } else {
             steps[id] = ChatTimelineStep(id = id, label = label, kind = kind, status = status)
         }
+    }
+
+    private fun markToolDone(id: String) {
+        steps[id]?.let { step ->
+            if (step.status == TimelineStepStatus.Active) {
+                steps[id] = step.copy(status = TimelineStepStatus.Done)
+            }
+        }
+    }
+
+    private fun markActiveSearchDone() {
+        val active = steps.entries.lastOrNull {
+            it.value.kind == TimelineStepKind.Search && it.value.status == TimelineStepStatus.Active
+        } ?: return
+        steps[active.key] = active.value.copy(status = TimelineStepStatus.Done)
     }
 
     private fun markAllToolsDone() {

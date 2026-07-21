@@ -253,9 +253,9 @@ private fun pendingAssistantMessage(id: String): ChatMessage = ChatMessage(
     isStreaming = true,
     timeline = listOf(
         ChatTimelineStep(
-            id = "search",
-            label = "Поиск в документах",
-            kind = TimelineStepKind.Search,
+            id = "connect",
+            label = "Обрабатываю запрос…",
+            kind = TimelineStepKind.Thinking,
             status = TimelineStepStatus.Active,
         ),
     ),

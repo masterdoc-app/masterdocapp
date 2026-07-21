@@ -2,7 +2,7 @@ package pro.fixaverse.data.chat
 
 expect fun defaultChatDataMode(): ChatDataMode
 
-/** Ktor Wasm fetch cannot reliably read NDJSON streams (TypeError: network error). */
+/** Wasm uses Fetch ReadableStream; other targets use Ktor. */
 expect fun useStreamingChatTransport(): Boolean
 
 enum class ChatDataMode {

@@ -108,5 +108,18 @@ private fun TimelineStepRow(step: ChatTimelineStep) {
                 modifier = Modifier.padding(start = 22.dp, top = 2.dp),
             )
         }
+
+        AnimatedVisibility(
+            visible = step.kind == TimelineStepKind.Thinking && step.detail.isNotBlank(),
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
+            Text(
+                text = step.detail.lineSequence().take(4).joinToString("\n").take(280),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 22.dp, top = 2.dp),
+            )
+        }
     }
 }

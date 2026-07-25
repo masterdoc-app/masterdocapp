@@ -27,6 +27,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout fixaverse-design (includeBuild, no Packages token)
+        uses: actions/checkout@v4
+        with:
+          repository: masterdoc-app/fixaverse-design
+          path: fixaverse-design
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

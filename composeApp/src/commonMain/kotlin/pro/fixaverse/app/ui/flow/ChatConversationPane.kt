@@ -118,7 +118,7 @@ private fun ChatGreetingBubble(showWho: Boolean) {
                     Text(
                         text = AppBranding.ASSISTANT_LABEL,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
                 Text(
@@ -147,7 +147,7 @@ private fun FlowChatMessageBubble(
                         Text(
                             text = AppBranding.ASSISTANT_LABEL,
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.secondary,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(bottom = FixaverseDimens.Space5),
                         )
                     }

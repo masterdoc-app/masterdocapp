@@ -123,7 +123,7 @@ private fun ChatConversationContent(
             TextButton(onClick = onChangeEquipment) {
                 Text(
                     "Сменить",
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -283,8 +283,8 @@ private fun ChatInputBar(
                 enabled = input.isNotBlank() && !isSending,
                 shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
             ) {
                 Text(

@@ -9,11 +9,16 @@ concurrency:
   group: deploy-copilot-web-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  packages: read
+
 env:
   DEPLOY_HOST: 91.207.75.72
   DEPLOY_PATH: /opt/masterdoc-copilot
   WEB_ROOT: /var/www/copilot.fixaverse.ru
   SITE_HOST: copilot.fixaverse.ru
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:

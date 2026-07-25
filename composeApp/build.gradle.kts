@@ -45,6 +45,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
 
+            implementation("pro.fixaverse:design-theme:0.1.0")
             implementation(projects.shared)
             implementation(libs.decompose)
             implementation(libs.decompose.compose)

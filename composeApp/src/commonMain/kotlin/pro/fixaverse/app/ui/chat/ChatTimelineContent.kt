@@ -80,7 +80,7 @@ private fun TimelineStepRow(step: ChatTimelineStep) {
                     tint = if (isError) {
                         MaterialTheme.colorScheme.error
                     } else {
-                        MaterialTheme.colorScheme.secondary
+                        MaterialTheme.colorScheme.primary
                     },
                 )
             }

@@ -35,7 +35,7 @@ fun ChatRoleMessageBubble(
                     Text(
                         text = AppBranding.ASSISTANT_LABEL,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(bottom = FixaverseDimens.Space5),
                     )
                 }

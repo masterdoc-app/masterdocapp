@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import pro.fixaverse.design.theme.FixaverseLiteTokens
 
 /** Paper gradient used in lite `.convo` screens. */
 @Composable
@@ -250,7 +251,7 @@ fun LiteCameraHeroButton(
                 .size(buttonSize)
                 .clickable(enabled = enabled && !isLoading, onClick = onClick)
                 .background(
-                    color = if (enabled) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant,
+                    color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                     shape = CircleShape,
                 )
                 .border(3.dp, FixaverseLiteTokens.FlareTint, CircleShape),
@@ -262,7 +263,7 @@ fun LiteCameraHeroButton(
                 Icon(
                     imageVector = Icons.Filled.PhotoCamera,
                     contentDescription = "Сканировать камерой",
-                    tint = MaterialTheme.colorScheme.onSecondary,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(44.dp),
                 )
             }
@@ -286,13 +287,13 @@ fun LiteMicHeroButton(
         Box(
             modifier = Modifier
                 .size(size)
-                .background(MaterialTheme.colorScheme.secondary, CircleShape),
+                .background(MaterialTheme.colorScheme.primary, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Filled.Mic,
                 contentDescription = "Микрофон",
-                tint = MaterialTheme.colorScheme.onSecondary,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(size * 0.48f),
             )
         }
@@ -327,7 +328,7 @@ fun LiteListenPanel(
         FixaverseMonoLabel(
             text = if (isListening) label else label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.secondary,
+            color = MaterialTheme.colorScheme.primary,
         )
         Text(
             text = hint,
@@ -464,8 +465,8 @@ fun LiteFlareButton(
         modifier = modifier,
         shape = LiteButtonShape,
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.secondary,
-            contentColor = MaterialTheme.colorScheme.onSecondary,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
         ),
         contentPadding = PaddingValues(vertical = 11.dp, horizontal = FixaverseDimens.Space18),
     ) {
@@ -572,7 +573,7 @@ fun FixaverseMessageSurface(
 fun FixaverseLoadingIndicator(modifier: Modifier = Modifier) {
     CircularProgressIndicator(
         modifier = modifier,
-        color = MaterialTheme.colorScheme.secondary,
+        color = MaterialTheme.colorScheme.primary,
         strokeWidth = 2.dp,
     )
 }
@@ -640,7 +641,7 @@ fun FixaverseDetectLoadingOverlay(
                     Box(
                         modifier = Modifier
                             .size(ringInner)
-                            .background(MaterialTheme.colorScheme.secondary, CircleShape)
+                            .background(MaterialTheme.colorScheme.primary, CircleShape)
                             .border(2.dp, FixaverseLiteTokens.FlareTint, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -651,7 +652,7 @@ fun FixaverseDetectLoadingOverlay(
                     text = title,
                     modifier = Modifier.testTag(FixaverseTestTags.DETECT_LOADING_TITLE),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 if (hint.isNotBlank()) {
                     Text(

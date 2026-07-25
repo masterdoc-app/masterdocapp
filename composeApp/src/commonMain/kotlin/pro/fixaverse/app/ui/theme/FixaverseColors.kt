@@ -1,6 +1,7 @@
 package pro.fixaverse.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import pro.fixaverse.design.theme.FixaverseLiteTokens
 
 /** Raw palette — Fixaverse copilot (fixaverse.ru). */
 object FixaversePalette {

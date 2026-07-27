@@ -288,7 +288,7 @@ private fun ChatInputBar(
                 ),
             ) {
                 Text(
-                    if (isSending) "…" else "→",
+                    if (isSending) "..." else ">",
                     style = MaterialTheme.typography.labelLarge,
                 )
             }

@@ -119,7 +119,7 @@ fun LiteAppHead(
             .fillMaxWidth()
             .drawBehind {
                 drawLine(
-                    color = FixaversePalette.Rule,
+                    color = FixaversePalette.Rule2,
                     start = Offset(0f, size.height),
                     end = Offset(size.width, size.height),
                     strokeWidth = 1.dp.toPx(),
@@ -313,7 +313,7 @@ fun LiteListenPanel(
             .fillMaxWidth()
             .drawBehind {
                 drawLine(
-                    color = FixaversePalette.Rule,
+                    color = FixaversePalette.Rule2,
                     start = Offset(0f, 0f),
                     end = Offset(size.width, 0f),
                     strokeWidth = 1.dp.toPx(),

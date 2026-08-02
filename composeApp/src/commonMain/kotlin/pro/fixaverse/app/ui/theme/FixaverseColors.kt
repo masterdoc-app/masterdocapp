@@ -22,14 +22,14 @@ object FixaversePalette {
     val WarmRed = FixaverseLiteTokens.WarmRed
     val Marian = FixaverseLiteTokens.Marian
 
-    // Legacy aliases (Onyx-era names) → lite tokens
+    // Legacy aliases (Onyx-era names) → lite light-blue surfaces/borders (not gray Paper2/Rule)
     val Grey00 = Paper
-    val Grey02 = Paper2
-    val Grey06 = Paper2
-    val Grey10 = Rule
+    val Grey02 = Paper3
+    val Grey06 = Paper3
+    val Grey10 = Rule2
     val Grey20 = Rule2
     val Stone02 = Paper
-    val Stone05 = Paper2
+    val Stone05 = Paper3
     val Ink95 = Ink
     val Ink90 = Ink2
     val Ink100 = Ink
@@ -48,10 +48,10 @@ object FixaversePalette {
 object FixaverseColors {
     val AppBackground = FixaversePalette.Paper
     val Surface = FixaversePalette.Paper
-    val SurfaceElevated = FixaversePalette.Paper2
+    val SurfaceElevated = FixaversePalette.Paper3
     val SurfaceMuted = FixaversePalette.Paper3
-    val SurfaceTint = FixaversePalette.Paper2
-    val Border = FixaversePalette.Rule
+    val SurfaceTint = FixaversePalette.FlareTint
+    val Border = FixaversePalette.Rule2
     val BorderStrong = FixaversePalette.Rule2
 
     val TextPrimary = FixaversePalette.Ink
